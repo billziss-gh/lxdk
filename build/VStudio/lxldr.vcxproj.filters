@@ -19,7 +19,7 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\..\src\lxdk\lxdk.c">
+    <ClCompile Include="..\..\src\lxldr\driver.c">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>

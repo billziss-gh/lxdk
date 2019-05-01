@@ -1,5 +1,5 @@
 /**
- * @file lxdk/lxdk.c
+ * @file lxldr/driver.c
  *
  * @copyright 2019 Bill Zissimopoulos
  */
