@@ -181,25 +181,26 @@ struct _LX_IOVECTOR
     LX_IOVECTOR_BUFFER Vector[];
 };
 
-NTKERNELAPI NTSTATUS NTAPI LxInitialize(
-    PDRIVER_OBJECT DriverObject,
-    PLX_SUBSYSTEM Subsystem);
+#if !defined(LXDK_IMPORT)
+#define LXDK_IMPORT(RetType, Name, ...) NTKERNELAPI RetType NTAPI Name ( __VA_ARGS__ );
+#endif
 
-NTKERNELAPI PLX_DEVICE NTAPI VfsDeviceMinorAllocate(
+LXDK_IMPORT(NTSTATUS, LxInitialize,
+    PDRIVER_OBJECT DriverObject,
+    PLX_SUBSYSTEM Subsystem)
+LXDK_IMPORT(PLX_DEVICE, VfsDeviceMinorAllocate,
     PLX_DEVICE_CALLBACKS Callbacks,
-    SIZE_T Size);
-NTKERNELAPI VOID NTAPI LxpDevMiscRegister(
+    SIZE_T Size)
+LXDK_IMPORT(VOID, LxpDevMiscRegister,
     PLX_INSTANCE Instance,
     PLX_DEVICE Device,
-    UINT32 DeviceMinor);
-
-NTKERNELAPI PLX_INODE NTAPI VfsInodeAllocate(
+    UINT32 DeviceMinor)
+LXDK_IMPORT(PLX_INODE, VfsInodeAllocate,
     SIZE_T Size,
-    PLX_INODE_CALLBACKS Callbacks);
-
-NTKERNELAPI PLX_FILE NTAPI VfsFileAllocate(
+    PLX_INODE_CALLBACKS Callbacks)
+LXDK_IMPORT(PLX_FILE, VfsFileAllocate,
     SIZE_T Size,
-    PLX_FILE_CALLBACKS Callbacks);
+    PLX_FILE_CALLBACKS Callbacks)
 
 #pragma warning(pop)
 

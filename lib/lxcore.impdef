@@ -1,0 +1,4 @@
+// tools\impdef.bat lib\lxcore.impdef lib\lxcore.lib
+
+#include <ntifs.h>
+#include <lxdk/lxdk.h>
