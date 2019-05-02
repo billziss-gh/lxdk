@@ -216,8 +216,8 @@ static NTSTATUS AddVfsStartupEntries(
     Entry.Path = *Name;
     Entry.Node.DeviceMajor = wcstoint(P, &P, 0); skipws(P, &P);
     Entry.Node.DeviceMinor = wcstoint(P, &P, 0); skipws(P, &P);
+    Entry.Node.Mode = wcstoint(P, &P, 0); skipws(P, &P);
     Entry.Node.Uid = wcstoint(P, &P, 0); skipws(P, &P);
-    Entry.Node.Gid = wcstoint(P, &P, 0); skipws(P, &P);
     Entry.Node.Gid = wcstoint(P, &P, 0); skipws(P, &P);
     Error = VfsInitializeStartupEntries(Context->Instance, &Entry, 1);
     if (0 > Error)
