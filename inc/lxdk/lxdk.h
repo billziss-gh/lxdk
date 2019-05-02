@@ -231,7 +231,7 @@ struct _LX_IOVECTOR
 LXDK_IMPORT(NTSTATUS, LxInitialize,
     PDRIVER_OBJECT DriverObject,
     PLX_SUBSYSTEM Subsystem)
-LXDK_IMPORT(VOID, VfsInitializeStartupEntries,
+LXDK_IMPORT(INT, VfsInitializeStartupEntries,
     PLX_INSTANCE Instance,
     PLX_VFS_STARTUP_ENTRY Entries,
     ULONG Count)
@@ -248,7 +248,7 @@ LXDK_IMPORT(PLX_INODE, VfsInodeAllocate,
 LXDK_IMPORT(PLX_FILE, VfsFileAllocate,
     SIZE_T Size,
     PLX_FILE_CALLBACKS Callbacks)
-LXDK_IMPORT(int, LxpUtilTranslateStatus,
+LXDK_IMPORT(INT, LxpUtilTranslateStatus,
     NTSTATUS Status)
 
 #pragma warning(pop)
