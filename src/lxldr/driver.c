@@ -124,12 +124,61 @@ exit:
     return Status;
 }
 
+static unsigned wcstoint(const wchar_t *p, const wchar_t **endp, int base)
+{
+    unsigned v;
+    int maxdig, maxalp;
+
+    if (0 == base)
+    {
+        if ('0' == *p)
+        {
+            p++;
+            if ('x' == *p || 'X' == *p)
+            {
+                p++;
+                base = 16;
+            }
+            else
+                base = 8;
+        }
+        else
+        {
+            base = 10;
+        }
+    }
+
+    maxdig = 10 < base ? '9' : (base - 1) + '0';
+    maxalp = 10 < base ? (base - 1 - 10) + 'a' : 0;
+
+    for (v = 0; *p; p++)
+    {
+        int c = *p;
+
+        if ('0' <= c && c <= maxdig)
+            v = base * v + (c - '0');
+        else
+        {
+            c |= 0x20;
+            if ('a' <= c && c <= maxalp)
+                v = base * v + (c - 'a') + 10;
+            else
+                break;
+        }
+    }
+
+    if (0 != endp)
+        *endp = (wchar_t *)p;
+
+    return v;
+}
+
 typedef struct
 {
     PLX_INSTANCE Instance;
 } SERVICE_LOADER_CONTEXT;
 
-NTSTATUS AddVfsStartupEntries(
+static NTSTATUS AddVfsStartupEntries(
     HANDLE Root,
     PUNICODE_STRING Name,
     ULONG Type,
@@ -140,13 +189,14 @@ NTSTATUS AddVfsStartupEntries(
     UNREFERENCED_PARAMETER(Root);
 
     SERVICE_LOADER_CONTEXT *Context = Context0;
+    PWSTR P = Buffer;
     LX_VFS_STARTUP_ENTRY Entry;
     INT Error;
     NTSTATUS Status;
 
-    if (REG_DWORD != Type || sizeof(ULONG) != Length)
+    if (REG_SZ != Type || sizeof(WCHAR) > Length || L'\0' != P[Length / sizeof(WCHAR) - 1])
     {
-        LOG(": \"%wZ\": error: expected REG_DWORD", Name);
+        LOG(": \"%wZ\": error: invalid vfs entry", Name);
 
         Status = STATUS_INVALID_PARAMETER;
         goto exit;
@@ -155,11 +205,11 @@ NTSTATUS AddVfsStartupEntries(
     RtlZeroMemory(&Entry, 0);
     Entry.Kind = VfsStartEntryNode;
     Entry.Path = *Name;
-    Entry.Node.Uid = 0;
-    Entry.Node.Gid = 0;
-    Entry.Node.Gid = 0700;
-    Entry.Node.DeviceMajor = (*(PULONG)Buffer >> 12) & 0xfffff;
-    Entry.Node.DeviceMinor = *(PULONG)Buffer & 0xfff;
+    Entry.Node.DeviceMajor = wcstoint(P, &P, 0);
+    Entry.Node.DeviceMinor = wcstoint(P, &P, 0);
+    Entry.Node.Uid = wcstoint(P, &P, 0);
+    Entry.Node.Gid = wcstoint(P, &P, 0);
+    Entry.Node.Gid = wcstoint(P, &P, 0);
     Error = VfsInitializeStartupEntries(Context->Instance, &Entry, 1);
     if (0 > Error)
     {
