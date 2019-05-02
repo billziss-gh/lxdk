@@ -173,6 +173,15 @@ static unsigned wcstoint(const wchar_t *p, const wchar_t **endp, int base)
     return v;
 }
 
+static void skipws(const wchar_t *p, const wchar_t **endp)
+{
+    for (; ' ' == *p; p++)
+        ;
+
+    if (0 != endp)
+        *endp = (wchar_t *)p;
+}
+
 typedef struct
 {
     PLX_INSTANCE Instance;
@@ -205,11 +214,11 @@ static NTSTATUS AddVfsStartupEntries(
     RtlZeroMemory(&Entry, 0);
     Entry.Kind = VfsStartEntryNode;
     Entry.Path = *Name;
-    Entry.Node.DeviceMajor = wcstoint(P, &P, 0);
-    Entry.Node.DeviceMinor = wcstoint(P, &P, 0);
-    Entry.Node.Uid = wcstoint(P, &P, 0);
-    Entry.Node.Gid = wcstoint(P, &P, 0);
-    Entry.Node.Gid = wcstoint(P, &P, 0);
+    Entry.Node.DeviceMajor = wcstoint(P, &P, 0); skipws(P, &P);
+    Entry.Node.DeviceMinor = wcstoint(P, &P, 0); skipws(P, &P);
+    Entry.Node.Uid = wcstoint(P, &P, 0); skipws(P, &P);
+    Entry.Node.Gid = wcstoint(P, &P, 0); skipws(P, &P);
+    Entry.Node.Gid = wcstoint(P, &P, 0); skipws(P, &P);
     Error = VfsInitializeStartupEntries(Context->Instance, &Entry, 1);
     if (0 > Error)
     {
