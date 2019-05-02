@@ -76,9 +76,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\inc\lxdk\lxdk.h" />
+    <ClInclude Include="..\..\src\lxldr\driver.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\lxldr\driver.c" />
+    <ClCompile Include="..\..\src\lxldr\regutil.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

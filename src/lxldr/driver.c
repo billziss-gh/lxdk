@@ -4,125 +4,7 @@
  * @copyright 2019 Bill Zissimopoulos
  */
 
-#include <ntifs.h>
-#include <lxdk/lxdk.h>
-
-#define LXDK_REGPATH                    "\\Registry\\Machine\\Software\\Lxdk"
-#define LXDK_REGPATH_SERVICES           LXDK_REGPATH "\\Services"
-
-#define LOG(Format, ...)                DbgPrint("%s" Format "\n", __FUNCTION__, __VA_ARGS__)
-
-static NTSTATUS RegistryEnumerateKeys(
-    HANDLE Root,
-    PUNICODE_STRING Path,
-    NTSTATUS (*Func)(
-        HANDLE Root,
-        PUNICODE_STRING Name,
-        PVOID Context),
-    PVOID Context)
-{
-    OBJECT_ATTRIBUTES ObjectAttributes;
-    HANDLE Handle = 0;
-    union
-    {
-        KEY_NAME_INFORMATION V;
-        UINT8 B[256];
-    } NameInfo;
-    ULONG Length;
-    UNICODE_STRING Name;
-    NTSTATUS Status;
-
-    InitializeObjectAttributes(&ObjectAttributes,
-        Path, OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE, Root, 0);
-    Status = ZwOpenKey(&Handle, KEY_READ, &ObjectAttributes);
-    if (!NT_SUCCESS(Status))
-        goto exit;
-
-    for (ULONG I = 0;; I++)
-    {
-        Status = ZwEnumerateKey(Handle, I, KeyNameInformation, &NameInfo, Length, &Length);
-        if (!NT_SUCCESS(Status))
-        {
-            if (STATUS_NO_MORE_ENTRIES == Status)
-                break;
-            else if (STATUS_BUFFER_OVERFLOW == Status)
-                continue;
-            goto exit;
-        }
-
-        Name.Length = Name.MaximumLength = (USHORT)NameInfo.V.NameLength;
-        Name.Buffer = NameInfo.V.Name;
-        Status = Func(Handle, &Name, Context);
-        if (!NT_SUCCESS(Status))
-            goto exit;
-    }
-
-    Status = STATUS_SUCCESS;
-
-exit:
-    if (0 != Handle)
-        ZwClose(Handle);
-
-    return Status;
-}
-
-static NTSTATUS RegistryEnumerateKeyValues(
-    HANDLE Root,
-    PUNICODE_STRING Path,
-    NTSTATUS (*Func)(
-        HANDLE Root,
-        PUNICODE_STRING Name,
-        ULONG Type,
-        PVOID Buffer,
-        ULONG Length,
-        PVOID Context),
-    PVOID Context)
-{
-    OBJECT_ATTRIBUTES ObjectAttributes;
-    HANDLE Handle = 0;
-    union
-    {
-        KEY_VALUE_FULL_INFORMATION V;
-        UINT8 B[1024];
-    } ValueInfo;
-    ULONG Length;
-    UNICODE_STRING Name;
-    NTSTATUS Status;
-
-    InitializeObjectAttributes(&ObjectAttributes,
-        Path, OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE, Root, 0);
-    Status = ZwOpenKey(&Handle, KEY_READ, &ObjectAttributes);
-    if (!NT_SUCCESS(Status))
-        goto exit;
-
-    for (ULONG I = 0;; I++)
-    {
-        Status = ZwEnumerateValueKey(Handle, I, KeyValueFullInformation, &ValueInfo, Length, &Length);
-        if (!NT_SUCCESS(Status))
-        {
-            if (STATUS_NO_MORE_ENTRIES == Status)
-                break;
-            else if (STATUS_BUFFER_OVERFLOW == Status)
-                continue;
-            goto exit;
-        }
-
-        Name.Length = Name.MaximumLength = (USHORT)ValueInfo.V.NameLength;
-        Name.Buffer = ValueInfo.V.Name;
-        Status = Func(Handle, &Name, ValueInfo.V.Type, (PUINT8)&ValueInfo, ValueInfo.V.DataLength,
-            Context);
-        if (!NT_SUCCESS(Status))
-            goto exit;
-    }
-
-    Status = STATUS_SUCCESS;
-
-exit:
-    if (0 != Handle)
-        ZwClose(Handle);
-
-    return Status;
-}
+#include <lxldr/driver.h>
 
 static unsigned wcstoint(const wchar_t *p, const wchar_t **endp, int base)
 {
@@ -187,7 +69,32 @@ typedef struct
     PLX_INSTANCE Instance;
 } SERVICE_LOADER_CONTEXT;
 
-static NTSTATUS AddVfsStartupEntries(
+static NTSTATUS LoadService(
+    HANDLE Root,
+    PUNICODE_STRING Name,
+    PVOID Context)
+{
+    NTSTATUS Status;
+
+    Status = ZwLoadDriver(Name);
+    if (!NT_SUCCESS(Status) && STATUS_IMAGE_ALREADY_LOADED != Status)
+    {
+        LOG(": \"%wZ\": error: ZwLoadDriver = %lx", Name, Status);
+
+        goto exit;
+    }
+
+    Status = STATUS_SUCCESS;
+
+exit:
+    /*
+     * A driver that is misconfigured should not prevent other drivers from loading.
+     * Therefore always return SUCCESS.
+     */
+    return STATUS_SUCCESS;
+}
+
+static NTSTATUS AddServiceVfsStartupEntry(
     HANDLE Root,
     PUNICODE_STRING Name,
     ULONG Type,
@@ -195,8 +102,6 @@ static NTSTATUS AddVfsStartupEntries(
     ULONG Length,
     PVOID Context0)
 {
-    UNREFERENCED_PARAMETER(Root);
-
     SERVICE_LOADER_CONTEXT *Context = Context0;
     PWSTR P = Buffer;
     LX_VFS_STARTUP_ENTRY Entry;
@@ -234,12 +139,11 @@ exit:
     return Status;
 }
 
-static NTSTATUS LoadService(
+static NTSTATUS AddServiceVfsStartupEntries(
     HANDLE Root,
     PUNICODE_STRING Name,
-    PVOID Context0)
+    PVOID Context)
 {
-    SERVICE_LOADER_CONTEXT *Context = Context0;
     WCHAR PathBuf[256 + sizeof L"Devices"];
     UNICODE_STRING Path;
     NTSTATUS Status;
@@ -255,21 +159,15 @@ static NTSTATUS LoadService(
         goto exit;
     }
 
-    Status = ZwLoadDriver(Name);
-    if (!NT_SUCCESS(Status) && STATUS_IMAGE_ALREADY_LOADED != Status)
-    {
-        LOG(": \"%wZ\": error: ZwLoadDriver = %lx", Name, Status);
-
-        goto exit;
-    }
-
-    Status = RegistryEnumerateKeyValues(Root, &Path, AddVfsStartupEntries, Context);
-    if (!NT_SUCCESS(Status))
+    Status = RegistryEnumerateKeyValues(Root, &Path, AddServiceVfsStartupEntry, Context);
+    if (!NT_SUCCESS(Status) && STATUS_OBJECT_NAME_NOT_FOUND != Status)
     {
         LOG(": \"%wZ\": error: RegistryEnumerateKeyValues = %lx", Name, Status);
 
         goto exit;
     }
+
+    Status = STATUS_SUCCESS;
 
 exit:
     /*
@@ -294,15 +192,40 @@ static INT CreateInitialNamespace(
     if (!NT_SUCCESS(Status))
         /* ignore */;
 
+    RtlInitUnicodeString(&RegistryPath, L"" LXDK_REGPATH_SERVICES);
+    Status = RegistryEnumerateKeys(0, &RegistryPath, AddServiceVfsStartupEntries, &Context);
+    if (!NT_SUCCESS(Status))
+        /* ignore */;
+
     return 0;
+}
+
+__declspec(dllexport) NTSTATUS NTAPI RegisterService(
+    PDRIVER_OBJECT DriverObject,
+    BOOLEAN Register,
+    NTSTATUS (*Func)(
+        PLX_INSTANCE Instance))
+{
+    PUNICODE_STRING DriverName = &DriverObject->DriverName;
+
+    if (Register)
+    {
+        (VOID)DriverName;
+        (VOID)Func;
+    }
+    else
+    {
+        (VOID)DriverName;
+        (VOID)Func;
+    }
+
+    return STATUS_NOT_IMPLEMENTED;
 }
 
 NTSTATUS DriverEntry(
     PDRIVER_OBJECT DriverObject,
     PUNICODE_STRING RegistryPath)
 {
-    UNREFERENCED_PARAMETER(RegistryPath);
-
     static LX_SUBSYSTEM Subsystem =
     {
         CreateInitialNamespace,

@@ -251,6 +251,12 @@ LXDK_IMPORT(PLX_FILE, VfsFileAllocate,
 LXDK_IMPORT(INT, LxpUtilTranslateStatus,
     NTSTATUS Status)
 
+#if !defined(LXDK_LXLDR_INTERNAL)
+LXDK_IMPORT(NTSTATUS, RegisterService,
+    PDRIVER_OBJECT DriverObject,
+    BOOLEAN Register)
+#endif
+
 #pragma warning(pop)
 
 #endif

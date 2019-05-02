@@ -17,9 +17,15 @@
     <ClInclude Include="..\..\inc\lxdk\lxdk.h">
       <Filter>Include\lxdk</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\src\lxldr\driver.h">
+      <Filter>Source</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\..\src\lxldr\driver.c">
+      <Filter>Source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\lxldr\regutil.c">
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>
