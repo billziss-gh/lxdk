@@ -9,9 +9,11 @@
 
 #pragma warning(push)
 #pragma warning(disable:4200)           /* zero-sized array in struct/union */
+#pragma warning(disable:4201)           /* nameless struct/union */
 
 typedef struct _LX_SUBSYSTEM LX_SUBSYSTEM, *PLX_SUBSYSTEM;
 typedef struct _LX_INSTANCE LX_INSTANCE, *PLX_INSTANCE;
+typedef struct _LX_VFS_STARTUP_ENTRY LX_VFS_STARTUP_ENTRY, *PLX_VFS_STARTUP_ENTRY;
 typedef struct _LX_DEVICE LX_DEVICE, *PLX_DEVICE;
 typedef struct _LX_DEVICE_CALLBACKS LX_DEVICE_CALLBACKS, *PLX_DEVICE_CALLBACKS;
 typedef struct _LX_INODE LX_INODE, *PLX_INODE;
@@ -94,6 +96,47 @@ struct _LX_SUBSYSTEM
     PLX_SUBSYSTEM_CREATE_INITIAL_NAMESPACE CreateInitialNamespace;
 
     PVOID Reserved[7];
+};
+
+enum
+{
+    VfsStartEntryDirectory,
+    VfsStartEntryMount,
+    VfsStartEntryNode,
+    VfsStartEntrySymlink,
+    VfsStartEntryFile,
+};
+
+struct _LX_VFS_STARTUP_ENTRY
+{
+    ULONG Kind;
+    UNICODE_STRING Path;
+    union
+    {
+        struct
+        {
+            ULONG Uid;
+            ULONG Gid;
+            ULONG Mode;
+        } Directory;
+        UINT8 Mount[72];
+        struct
+        {
+            ULONG Uid;
+            ULONG Gid;
+            ULONG Mode;
+            UINT32 DeviceMajor:20;
+            UINT32 DeviceMinor:12;
+        } Node;
+        struct
+        {
+            UNICODE_STRING TargetPath;
+        } Symlink;
+        struct
+        {
+            ULONG Mode;
+        } File;
+    } DUMMYUNIONNAME;
 };
 
 struct _LX_DEVICE_CALLBACKS
@@ -188,6 +231,10 @@ struct _LX_IOVECTOR
 LXDK_IMPORT(NTSTATUS, LxInitialize,
     PDRIVER_OBJECT DriverObject,
     PLX_SUBSYSTEM Subsystem)
+LXDK_IMPORT(VOID, VfsInitializeStartupEntries,
+    PLX_INSTANCE Instance,
+    PLX_VFS_STARTUP_ENTRY Entries,
+    ULONG Count)
 LXDK_IMPORT(PLX_DEVICE, VfsDeviceMinorAllocate,
     PLX_DEVICE_CALLBACKS Callbacks,
     SIZE_T Size)
@@ -201,6 +248,8 @@ LXDK_IMPORT(PLX_INODE, VfsInodeAllocate,
 LXDK_IMPORT(PLX_FILE, VfsFileAllocate,
     SIZE_T Size,
     PLX_FILE_CALLBACKS Callbacks)
+LXDK_IMPORT(int, LxpUtilTranslateStatus,
+    NTSTATUS Status)
 
 #pragma warning(pop)
 
