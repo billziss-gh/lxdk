@@ -19,7 +19,7 @@ if exist !workdir! rmdir /s/q !workdir!
 mkdir !workdir!
 
 type !infile! >>!workbase!.c
-cl /LD /Fe!workbase!.dll /Fo!workbase!.obj /D_AMD64_ /wd4716 !workbase!.c
+cl /LD /Fe!workbase!.sys /Fo!workbase!.obj /D_AMD64_ /wd4716 !workbase!.c
 if errorlevel 1 goto fail
 
 copy !workbase!.lib !outfile!
