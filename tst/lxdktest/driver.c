@@ -118,7 +118,7 @@ static INT CreateInitialNamespace(
     Device = VfsDeviceMinorAllocate(&DeviceCallbacks, 0);
     if (0 == Device)
     {
-        Error = -12/*ENOMEM*/;
+        Error = -ENOMEM;
         goto exit;
     }
 
@@ -135,6 +135,8 @@ static INT CreateInitialNamespace(
     Error = VfsInitializeStartupEntries(Instance, &Entry, 1);
     if (0 > Error)
         goto exit;
+
+    Error = 0;
 
 exit:
     if (0 != Device)

@@ -75,6 +75,7 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\inc\lxdk\errno.h" />
     <ClInclude Include="..\..\inc\lxdk\lxdk.h" />
     <ClInclude Include="..\..\src\lxldr\driver.h" />
   </ItemGroup>

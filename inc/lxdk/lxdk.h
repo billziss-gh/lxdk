@@ -11,6 +11,8 @@
 #pragma warning(disable:4200)           /* zero-sized array in struct/union */
 #pragma warning(disable:4201)           /* nameless struct/union */
 
+#include <lxdk/errno.h>
+
 typedef struct _LX_SUBSYSTEM LX_SUBSYSTEM, *PLX_SUBSYSTEM;
 typedef struct _LX_INSTANCE LX_INSTANCE, *PLX_INSTANCE;
 typedef struct _LX_VFS_STARTUP_ENTRY LX_VFS_STARTUP_ENTRY, *PLX_VFS_STARTUP_ENTRY;
