@@ -43,6 +43,9 @@ typedef INT LX_DEVICE_UNINITIALIZE(
 typedef LX_DEVICE_OPEN *PLX_DEVICE_OPEN;
 typedef LX_DEVICE_UNINITIALIZE *PLX_DEVICE_UNINITIALIZE;
 
+typedef INT LX_FILE_DELETE(
+    PLX_CALL_CONTEXT CallContext,
+    PLX_FILE File);
 typedef INT LX_FILE_FLUSH(
     PLX_CALL_CONTEXT CallContext,
     PLX_FILE File);
@@ -85,6 +88,7 @@ typedef INT LX_FILE_WRITE_VECTOR(
     ULONG Flags,
     PUINT32 PBytesTransferred);
 
+typedef LX_FILE_DELETE *PLX_FILE_DELETE;
 typedef LX_FILE_FLUSH *PLX_FILE_FLUSH;
 typedef LX_FILE_IOCTL *PLX_FILE_IOCTL;
 typedef LX_FILE_READ *PLX_FILE_READ;
@@ -127,8 +131,8 @@ struct _LX_VFS_STARTUP_ENTRY
             ULONG Uid;
             ULONG Gid;
             ULONG Mode;
-            UINT32 DeviceMajor:20;
-            UINT32 DeviceMinor:12;
+            UINT32 DeviceMinor:20;
+            UINT32 DeviceMajor:12;
         } Node;
         struct
         {
@@ -189,15 +193,15 @@ struct _LX_INODE_CALLBACKS
     PVOID InotifyNtWatchIncrementWatchCount;
     PVOID ReferenceNtFileObject;
     PVOID Pin;
-    struct LX_INODE_XATTR_CALLBACKS * ExtendedAttributeCallbacks;
-    struct LX_INODE_XATTR_CALLBACKS * SystemExtendedAttributeCallbacks;
+    struct LX_INODE_XATTR_CALLBACKS *ExtendedAttributeCallbacks;
+    struct LX_INODE_XATTR_CALLBACKS *SystemExtendedAttributeCallbacks;
 
     PVOID Reserved[6];
 };
 
 struct _LX_FILE_CALLBACKS
 {
-    PVOID Delete;
+    PLX_FILE_DELETE Delete;
     PLX_FILE_READ Read;
     PVOID ReadDir;
     PLX_FILE_WRITE Write;

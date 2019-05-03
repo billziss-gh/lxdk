@@ -9,18 +9,33 @@
 
 #pragma warning(disable:4100)           /* unreferenced formal parameter */
 
+#define LOG(Format, ...)                DbgPrint("%s" Format "\n", __FUNCTION__, __VA_ARGS__)
+
 static INT DeviceOpen(
     PLX_CALL_CONTEXT CallContext,
     PLX_DEVICE Device,
     ULONG OpenFlags,
-    PLX_FILE* PFile)
+    PLX_FILE *PFile)
 {
+    LOG(": Device=%p, OpenFlags=%lx", Device, OpenFlags);
+
     return 0;
 }
 
 static INT DeviceUninitialize(
     PLX_DEVICE Device)
 {
+    LOG(": Device=%p", Device);
+
+    return 0;
+}
+
+static INT FileDelete(
+    PLX_CALL_CONTEXT CallContext,
+    PLX_FILE File)
+{
+    LOG(": File=%p", File);
+
     return 0;
 }
 
@@ -28,6 +43,8 @@ static INT FileFlush(
     PLX_CALL_CONTEXT CallContext,
     PLX_FILE File)
 {
+    LOG(": File=%p", File);
+
     return 0;
 }
 
@@ -37,6 +54,8 @@ static INT FileIoctl(
     ULONG Code,
     PVOID Buffer)
 {
+    LOG(": File=%p, Code=%lx", File, Code);
+
     return 0;
 }
 
@@ -49,6 +68,9 @@ static INT FileRead(
     ULONG Flags,
     PUINT32 PBytesTransferred)
 {
+    LOG(": File=%p, Length=%lx, ByteOffset=%lx:%lx",
+        File, Length, ByteOffset->HighPart, ByteOffset->LowPart);
+
     return 0;
 }
 
@@ -60,6 +82,9 @@ static INT FileReadVector(
     ULONG Flags,
     PUINT32 PBytesTransferred)
 {
+    LOG(": File=%p, IoVector->Count=%lx, ByteOffset=%lx:%lx",
+        File, IoVector->Count, ByteOffset->HighPart, ByteOffset->LowPart);
+
     return 0;
 }
 
@@ -67,6 +92,8 @@ static INT FileRelease(
     PLX_CALL_CONTEXT CallContext,
     PLX_FILE File)
 {
+    LOG(": File=%p", File);
+
     return 0;
 }
 
@@ -79,6 +106,9 @@ static INT FileWrite(
     ULONG Flags,
     PUINT32 PBytesTransferred)
 {
+    LOG(": File=%p, Length=%lx, ByteOffset=%lx:%lx",
+        File, Length, ByteOffset->HighPart, ByteOffset->LowPart);
+
     return 0;
 }
 
@@ -90,6 +120,9 @@ static INT FileWriteVector(
     ULONG Flags,
     PUINT32 PBytesTransferred)
 {
+    LOG(": File=%p, IoVector->Count=%lx, ByteOffset=%lx:%lx",
+        File, IoVector->Count, ByteOffset->HighPart, ByteOffset->LowPart);
+
     return 0;
 }
 
@@ -103,6 +136,7 @@ static INT CreateInitialNamespace(
     };
     static LX_FILE_CALLBACKS FileCallbacks =
     {
+        .Delete = FileDelete,
         .Flush = FileFlush,
         .Ioctl = FileIoctl,
         .Read = FileRead,
