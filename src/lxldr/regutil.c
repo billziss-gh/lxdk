@@ -19,9 +19,9 @@ NTSTATUS RegistryEnumerateKeys(
     HANDLE Handle = 0;
     union
     {
-        KEY_NAME_INFORMATION V;
+        KEY_BASIC_INFORMATION V;
         UINT8 B[256];
-    } NameInfo;
+    } BasicInfo;
     ULONG Length;
     UNICODE_STRING Name;
     NTSTATUS Status;
@@ -34,7 +34,8 @@ NTSTATUS RegistryEnumerateKeys(
 
     for (ULONG I = 0;; I++)
     {
-        Status = ZwEnumerateKey(Handle, I, KeyNameInformation, &NameInfo, Length, &Length);
+        Length = sizeof BasicInfo;
+        Status = ZwEnumerateKey(Handle, I, KeyBasicInformation, &BasicInfo, Length, &Length);
         if (!NT_SUCCESS(Status))
         {
             if (STATUS_NO_MORE_ENTRIES == Status)
@@ -44,8 +45,8 @@ NTSTATUS RegistryEnumerateKeys(
             goto exit;
         }
 
-        Name.Length = Name.MaximumLength = (USHORT)NameInfo.V.NameLength;
-        Name.Buffer = NameInfo.V.Name;
+        Name.Length = Name.MaximumLength = (USHORT)BasicInfo.V.NameLength;
+        Name.Buffer = BasicInfo.V.Name;
         Status = Func(Handle, &Name, Context);
         if (!NT_SUCCESS(Status))
             goto exit;

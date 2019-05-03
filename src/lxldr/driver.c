@@ -130,12 +130,15 @@ NTSTATUS DriverEntry(
     if (!KD_DEBUGGER_NOT_PRESENT)
         DbgBreakPoint();
 
+    static LX_SUBSYSTEM Subsystem = { CreateInitialNamespace };
+    NTSTATUS Status;
+
     ExInitializePushLock(&ServiceListLock);
     InitializeListHead(&ServiceList);
 
-    static LX_SUBSYSTEM Subsystem =
-    {
-        CreateInitialNamespace,
-    };
-    return LxInitialize(DriverObject, &Subsystem);
+    Status = LxInitialize(DriverObject, &Subsystem);
+    if (STATUS_TOO_LATE == Status)
+        Status = STATUS_SUCCESS;
+
+    return Status;
 }
