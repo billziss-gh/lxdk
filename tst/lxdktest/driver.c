@@ -11,41 +11,28 @@
 
 #define LOG(Format, ...)                DbgPrint("%s" Format "\n", __FUNCTION__, __VA_ARGS__)
 
-static INT DeviceOpen(
-    PLX_CALL_CONTEXT CallContext,
-    PLX_DEVICE Device,
-    ULONG OpenFlags,
-    PLX_FILE *PFile)
-{
-    LOG(": Device=%p, OpenFlags=%lx", Device, OpenFlags);
-
-    return 0;
-}
-
-static INT DeviceUninitialize(
-    PLX_DEVICE Device)
-{
-    LOG(": Device=%p", Device);
-
-    return 0;
-}
-
 static INT FileDelete(
     PLX_CALL_CONTEXT CallContext,
     PLX_FILE File)
 {
-    LOG(": File=%p", File);
+    INT Error;
 
-    return 0;
+    Error = 0;
+
+    LOG("(File=%p) = %d", File, Error);
+    return Error;
 }
 
 static INT FileFlush(
     PLX_CALL_CONTEXT CallContext,
     PLX_FILE File)
 {
-    LOG(": File=%p", File);
+    INT Error;
 
-    return 0;
+    Error = 0;
+
+    LOG("(File=%p) = %d", File, Error);
+    return Error;
 }
 
 static INT FileIoctl(
@@ -54,9 +41,12 @@ static INT FileIoctl(
     ULONG Code,
     PVOID Buffer)
 {
-    LOG(": File=%p, Code=%lx", File, Code);
+    INT Error;
 
-    return 0;
+    Error = 0;
+
+    LOG("(File=%p, Code=%lx) = %d", File, Code, Error);
+    return Error;
 }
 
 static INT FileRead(
@@ -68,10 +58,13 @@ static INT FileRead(
     ULONG Flags,
     PUINT32 PBytesTransferred)
 {
-    LOG(": File=%p, Length=%lx, ByteOffset=%lx:%lx",
-        File, Length, ByteOffset->HighPart, ByteOffset->LowPart);
+    INT Error;
 
-    return 0;
+    Error = 0;
+
+    LOG("(File=%p, Length=%lx, ByteOffset=%lx:%lx) = %d",
+        File, Length, ByteOffset->HighPart, ByteOffset->LowPart, Error);
+    return Error;
 }
 
 static INT FileReadVector(
@@ -82,19 +75,25 @@ static INT FileReadVector(
     ULONG Flags,
     PUINT32 PBytesTransferred)
 {
-    LOG(": File=%p, IoVector->Count=%lx, ByteOffset=%lx:%lx",
-        File, IoVector->Count, ByteOffset->HighPart, ByteOffset->LowPart);
+    INT Error;
 
-    return 0;
+    Error = 0;
+
+    LOG("(File=%p, IoVector->Count=%lx, ByteOffset=%lx:%lx) = %d",
+        File, IoVector->Count, ByteOffset->HighPart, ByteOffset->LowPart, Error);
+    return Error;
 }
 
 static INT FileRelease(
     PLX_CALL_CONTEXT CallContext,
     PLX_FILE File)
 {
-    LOG(": File=%p", File);
+    INT Error;
 
-    return 0;
+    Error = 0;
+
+    LOG("(File=%p) = %d", File, Error);
+    return Error;
 }
 
 static INT FileWrite(
@@ -106,10 +105,13 @@ static INT FileWrite(
     ULONG Flags,
     PUINT32 PBytesTransferred)
 {
-    LOG(": File=%p, Length=%lx, ByteOffset=%lx:%lx",
-        File, Length, ByteOffset->HighPart, ByteOffset->LowPart);
+    INT Error;
 
-    return 0;
+    Error = 0;
+
+    LOG("(File=%p, Length=%lx, ByteOffset=%lx:%lx) = %d",
+        File, Length, ByteOffset->HighPart, ByteOffset->LowPart, Error);
+    return Error;
 }
 
 static INT FileWriteVector(
@@ -120,20 +122,21 @@ static INT FileWriteVector(
     ULONG Flags,
     PUINT32 PBytesTransferred)
 {
-    LOG(": File=%p, IoVector->Count=%lx, ByteOffset=%lx:%lx",
-        File, IoVector->Count, ByteOffset->HighPart, ByteOffset->LowPart);
+    INT Error;
 
-    return 0;
+    Error = 0;
+
+    LOG("(File=%p, IoVector->Count=%lx, ByteOffset=%lx:%lx) = %d",
+        File, IoVector->Count, ByteOffset->HighPart, ByteOffset->LowPart, Error);
+    return Error;
 }
 
-static INT CreateInitialNamespace(
-    PLX_INSTANCE Instance)
+static INT DeviceOpen(
+    PLX_CALL_CONTEXT CallContext,
+    PLX_DEVICE Device,
+    ULONG OpenFlags,
+    PLX_FILE *PFile)
 {
-    static LX_DEVICE_CALLBACKS DeviceCallbacks =
-    {
-        .Open = DeviceOpen,
-        .Uninitialize = DeviceUninitialize,
-    };
     static LX_FILE_CALLBACKS FileCallbacks =
     {
         .Delete = FileDelete,
@@ -144,6 +147,45 @@ static INT CreateInitialNamespace(
         .Release = FileRelease,
         .Write = FileWrite,
         .WriteVector = FileWriteVector,
+    };
+    PLX_FILE File;
+    INT Error;
+
+    *PFile = 0;
+
+    File = VfsFileAllocate(0, &FileCallbacks);
+    if (0 == File)
+    {
+        Error = -ENOMEM;
+        goto exit;
+    }
+
+    *PFile = File;
+    Error = 0;
+
+exit:
+    LOG("(Device=%p, OpenFlags=%lx) = %d", Device, OpenFlags, Error);
+    return Error;
+}
+
+static INT DeviceUninitialize(
+    PLX_DEVICE Device)
+{
+    INT Error;
+
+    Error = 0;
+
+    LOG("(Device=%p) = %d", Device, Error);
+    return Error;
+}
+
+static INT CreateInitialNamespace(
+    PLX_INSTANCE Instance)
+{
+    static LX_DEVICE_CALLBACKS DeviceCallbacks =
+    {
+        .Open = DeviceOpen,
+        .Uninitialize = DeviceUninitialize,
     };
     PLX_DEVICE Device = 0;
     LX_VFS_STARTUP_ENTRY Entry;
@@ -161,7 +203,7 @@ static INT CreateInitialNamespace(
     RtlInitUnicodeString(&Entry.Path, L"/dev/lxdktest");
     Entry.Node.Mode = 020666;
     Entry.Node.DeviceMajor = 10;
-    Entry.Node.DeviceMinor = 0xFAB;
+    Entry.Node.DeviceMinor = 0x5BABE;
 
     LxpDevMiscRegister(Instance, Device, Entry.Node.DeviceMinor);
 
