@@ -141,6 +141,11 @@ struct _LX_VFS_STARTUP_ENTRY
     } DUMMYUNIONNAME;
 };
 
+struct _LX_DEVICE
+{
+    UINT8 Reserved[256];
+};
+
 struct _LX_DEVICE_CALLBACKS
 {
     PLX_DEVICE_OPEN Open;

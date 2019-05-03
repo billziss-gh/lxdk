@@ -115,7 +115,7 @@ static INT CreateInitialNamespace(
     LX_VFS_STARTUP_ENTRY Entry;
     INT Error;
 
-    Device = VfsDeviceMinorAllocate(&DeviceCallbacks, 0);
+    Device = VfsDeviceMinorAllocate(&DeviceCallbacks, sizeof(LX_DEVICE));
     if (0 == Device)
     {
         Error = -ENOMEM;
@@ -125,12 +125,11 @@ static INT CreateInitialNamespace(
     RtlZeroMemory(&Entry, sizeof Entry);
     Entry.Kind = VfsStartupEntryNode;
     RtlInitUnicodeString(&Entry.Path, L"/dev/lxdktest");
-    Entry.Node.Mode = 0666;
+    Entry.Node.Mode = 020666;
     Entry.Node.DeviceMajor = 10;
     Entry.Node.DeviceMinor = 0xFAB;
 
     LxpDevMiscRegister(Instance, Device, Entry.Node.DeviceMinor);
-    Device = 0;
 
     Error = VfsInitializeStartupEntries(Instance, &Entry, 1);
     if (0 > Error)
