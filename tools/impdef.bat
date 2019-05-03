@@ -18,7 +18,6 @@ set INCLUDE=%~dp0..\inc;!WindowsSdkDir!Include\!WindowsSDKVersion!km\crt;!Window
 if exist !workdir! rmdir /s/q !workdir!
 mkdir !workdir!
 
-echo #define LXDK_IMPORT(RetType, Name, ...) __declspec(dllexport) RetType NTAPI Name ( __VA_ARGS__ ) {} >!workbase!.c
 type !infile! >>!workbase!.c
 cl /LD /Fe!workbase!.dll /Fo!workbase!.obj /D_AMD64_ /wd4716 !workbase!.c
 if errorlevel 1 goto fail

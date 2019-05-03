@@ -224,6 +224,10 @@ struct _LX_IOVECTOR
     LX_IOVECTOR_BUFFER Vector[];
 };
 
+/*
+ * lxcore exports
+ */
+
 #if !defined(LXDK_IMPORT)
 #define LXDK_IMPORT(RetType, Name, ...) NTKERNELAPI RetType NTAPI Name ( __VA_ARGS__ );
 #endif
@@ -251,11 +255,18 @@ LXDK_IMPORT(PLX_FILE, VfsFileAllocate,
 LXDK_IMPORT(INT, LxpUtilTranslateStatus,
     NTSTATUS Status)
 
-#if !defined(LXDK_LXLDR_INTERNAL)
-LXDK_IMPORT(NTSTATUS, RegisterService,
-    PDRIVER_OBJECT DriverObject,
-    BOOLEAN Register)
+/*
+ * lxldr exports
+ */
+
+#if !defined(LXDK_LDRSYM)
+#define LXDK_LDRSYM(RetType, Name, ...) NTKERNELAPI RetType NTAPI Name ( __VA_ARGS__ );
 #endif
+
+LXDK_LDRSYM(NTSTATUS, RegisterService,
+    PDRIVER_OBJECT DriverObject,
+    BOOLEAN Register,
+    PLX_SUBSYSTEM_CREATE_INITIAL_NAMESPACE CreateInitialNamespace)
 
 #pragma warning(pop)
 

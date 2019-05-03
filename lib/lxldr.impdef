@@ -1,0 +1,5 @@
+// tools\impdef.bat lib\lxldr.impdef lib\lxldr.lib
+
+#define LXDK_LDRSYM(RetType, Name, ...) __declspec(dllexport) RetType NTAPI Name ( __VA_ARGS__ ) {}
+#include <ntifs.h>
+#include <lxdk/lxdk.h>

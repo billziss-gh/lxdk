@@ -1,4 +1,5 @@
 // tools\impdef.bat lib\lxcore.impdef lib\lxcore.lib
 
+#define LXDK_IMPORT(RetType, Name, ...) __declspec(dllexport) RetType NTAPI Name ( __VA_ARGS__ ) {}
 #include <ntifs.h>
 #include <lxdk/lxdk.h>
