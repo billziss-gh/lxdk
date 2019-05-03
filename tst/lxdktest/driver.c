@@ -149,5 +149,8 @@ NTSTATUS DriverEntry(
     PDRIVER_OBJECT DriverObject,
     PUNICODE_STRING RegistryPath)
 {
+    if (!KD_DEBUGGER_NOT_PRESENT)
+        DbgBreakPoint();
+
     return LxldrRegisterService(DriverObject, TRUE, CreateInitialNamespace);
 }
