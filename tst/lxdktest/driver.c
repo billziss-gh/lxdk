@@ -60,10 +60,14 @@ static INT FileRead(
 {
     INT Error;
 
+    *PBytesTransferred = 0;
     Error = 0;
 
     LOG("(File=%p, Length=%lx, ByteOffset=%lx:%lx) = %d",
-        File, Length, ByteOffset->HighPart, ByteOffset->LowPart, Error);
+        File, Length,
+        ByteOffset ? ByteOffset->HighPart : -1,
+        ByteOffset ? ByteOffset->LowPart : -1,
+        Error);
     return Error;
 }
 
@@ -77,10 +81,14 @@ static INT FileReadVector(
 {
     INT Error;
 
+    *PBytesTransferred = 0;
     Error = 0;
 
     LOG("(File=%p, IoVector->Count=%lx, ByteOffset=%lx:%lx) = %d",
-        File, IoVector->Count, ByteOffset->HighPart, ByteOffset->LowPart, Error);
+        File, IoVector->Count,
+        ByteOffset ? ByteOffset->HighPart : -1,
+        ByteOffset ? ByteOffset->LowPart : -1,
+        Error);
     return Error;
 }
 
@@ -107,10 +115,14 @@ static INT FileWrite(
 {
     INT Error;
 
+    *PBytesTransferred = 0;
     Error = 0;
 
     LOG("(File=%p, Length=%lx, ByteOffset=%lx:%lx) = %d",
-        File, Length, ByteOffset->HighPart, ByteOffset->LowPart, Error);
+        File, Length,
+        ByteOffset ? ByteOffset->HighPart : -1,
+        ByteOffset ? ByteOffset->LowPart : -1,
+        Error);
     return Error;
 }
 
@@ -124,10 +136,14 @@ static INT FileWriteVector(
 {
     INT Error;
 
+    *PBytesTransferred = 0;
     Error = 0;
 
     LOG("(File=%p, IoVector->Count=%lx, ByteOffset=%lx:%lx) = %d",
-        File, IoVector->Count, ByteOffset->HighPart, ByteOffset->LowPart, Error);
+        File, IoVector->Count,
+        ByteOffset ? ByteOffset->HighPart : -1,
+        ByteOffset ? ByteOffset->LowPart : -1,
+        Error);
     return Error;
 }
 
