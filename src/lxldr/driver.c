@@ -15,7 +15,7 @@ typedef struct
 static EX_PUSH_LOCK ServiceListLock;
 static LIST_ENTRY ServiceList;
 
-NTSTATUS NTAPI RegisterService(
+NTSTATUS NTAPI LxldrRegisterService(
     PDRIVER_OBJECT DriverObject,
     BOOLEAN Register,
     PLX_SUBSYSTEM_CREATE_INITIAL_NAMESPACE CreateInitialNamespace)

@@ -263,7 +263,7 @@ LXDK_IMPORT(INT, LxpUtilTranslateStatus,
 #define LXDK_LDRSYM(RetType, Name, ...) NTKERNELAPI RetType NTAPI Name ( __VA_ARGS__ );
 #endif
 
-LXDK_LDRSYM(NTSTATUS, RegisterService,
+LXDK_LDRSYM(NTSTATUS, LxldrRegisterService,
     PDRIVER_OBJECT DriverObject,
     BOOLEAN Register,
     PLX_SUBSYSTEM_CREATE_INITIAL_NAMESPACE CreateInitialNamespace)
