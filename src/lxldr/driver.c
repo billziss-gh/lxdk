@@ -71,9 +71,23 @@ static NTSTATUS LoadService(
     PUNICODE_STRING Name,
     PVOID Context)
 {
+    WCHAR PathBuf[64 + 256];
+    UNICODE_STRING Path;
     NTSTATUS Status;
 
-    Status = ZwLoadDriver(Name);
+    RtlInitEmptyUnicodeString(&Path, PathBuf, sizeof PathBuf);
+    Status = RtlAppendUnicodeToString(&Path,
+        L"\\Registry\\Machine\\System\\CurrentControlSet\\Services\\");
+    Status = NT_SUCCESS(Status) ? RtlAppendUnicodeStringToString(&Path, Name) : Status;
+    if (!NT_SUCCESS(Status))
+    {
+        LOG(": \"%wZ\": error: name too long", Name);
+
+        Status = STATUS_INVALID_PARAMETER;
+        goto exit;
+    }
+
+    Status = ZwLoadDriver(&Path);
     if (!NT_SUCCESS(Status) && STATUS_IMAGE_ALREADY_LOADED != Status)
     {
         LOG(": \"%wZ\": error: ZwLoadDriver = %lx", Name, Status);
