@@ -100,11 +100,11 @@ struct _LX_SUBSYSTEM
 
 enum
 {
-    VfsStartEntryDirectory,
-    VfsStartEntryMount,
-    VfsStartEntryNode,
-    VfsStartEntrySymlink,
-    VfsStartEntryFile,
+    VfsStartupEntryDirectory,
+    VfsStartupEntryMount,
+    VfsStartupEntryNode,
+    VfsStartupEntrySymlink,
+    VfsStartupEntryFile,
 };
 
 struct _LX_VFS_STARTUP_ENTRY
@@ -242,6 +242,8 @@ LXDK_IMPORT(INT, VfsInitializeStartupEntries,
 LXDK_IMPORT(PLX_DEVICE, VfsDeviceMinorAllocate,
     PLX_DEVICE_CALLBACKS Callbacks,
     SIZE_T Size)
+LXDK_IMPORT(VOID, VfsDeviceMinorDereference,
+    PLX_DEVICE Device)
 LXDK_IMPORT(VOID, LxpDevMiscRegister,
     PLX_INSTANCE Instance,
     PLX_DEVICE Device,
