@@ -106,13 +106,12 @@ static INT FileRead(
     PLX_CALL_CONTEXT CallContext,
     PLX_FILE File0,
     PVOID Buffer,
-    ULONG Length,
+    SIZE_T Length,
     PLARGE_INTEGER ByteOffset,
-    ULONG Flags,
-    PUINT32 PBytesTransferred)
+    PSIZE_T PBytesTransferred)
 {
     FILE *File = (FILE *)File0;
-    ULONG Offset, EndOffset;
+    INT64 Offset, EndOffset;
     INT Error;
 
     *PBytesTransferred = 0;
@@ -142,48 +141,26 @@ static INT FileRead(
     Error = 0;
 
 exit:
-    LOG("(File=%p, Length=%lx, ByteOffset=%lx:%lx) = %d",
-        File, Length,
+    LOG("(File=%p, Length=%lu, ByteOffset=%lx:%lx, *PBytesTransferred = %lu) = %d",
+        File,
+        (unsigned)Length,
         ByteOffset ? ByteOffset->HighPart : -1,
         ByteOffset ? ByteOffset->LowPart : -1,
+        (unsigned)*PBytesTransferred,
         Error);
     return Error;
 }
-
-#if 0
-static INT FileReadVector(
-    PLX_CALL_CONTEXT CallContext,
-    PLX_FILE File,
-    PLX_IOVECTOR IoVector,
-    PLARGE_INTEGER ByteOffset,
-    ULONG Flags,
-    PUINT32 PBytesTransferred)
-{
-    INT Error;
-
-    *PBytesTransferred = 0;
-    Error = 0;
-
-    LOG("(File=%p, IoVector->Count=%lx, ByteOffset=%lx:%lx) = %d",
-        File, IoVector->Count,
-        ByteOffset ? ByteOffset->HighPart : -1,
-        ByteOffset ? ByteOffset->LowPart : -1,
-        Error);
-    return Error;
-}
-#endif
 
 static INT FileWrite(
     PLX_CALL_CONTEXT CallContext,
     PLX_FILE File0,
     PVOID Buffer,
-    ULONG Length,
+    SIZE_T Length,
     PLARGE_INTEGER ByteOffset,
-    ULONG Flags,
-    PUINT32 PBytesTransferred)
+    PSIZE_T PBytesTransferred)
 {
     FILE *File = (FILE *)File0;
-    ULONG Offset, EndOffset;
+    INT64 Offset, EndOffset;
     INT Error;
 
     *PBytesTransferred = 0;
@@ -213,41 +190,20 @@ static INT FileWrite(
     Error = 0;
 
 exit:
-    LOG("(File=%p, Length=%lx, ByteOffset=%lx:%lx) = %d",
-        File, Length,
+    LOG("(File=%p, Length=%lu, ByteOffset=%lx:%lx, *PBytesTransferred = %lu) = %d",
+        File,
+        (unsigned)Length,
         ByteOffset ? ByteOffset->HighPart : -1,
         ByteOffset ? ByteOffset->LowPart : -1,
+        (unsigned)*PBytesTransferred,
         Error);
     return Error;
 }
-
-#if 0
-static INT FileWriteVector(
-    PLX_CALL_CONTEXT CallContext,
-    PLX_FILE File,
-    PLX_IOVECTOR IoVector,
-    PLARGE_INTEGER ByteOffset,
-    ULONG Flags,
-    PUINT32 PBytesTransferred)
-{
-    INT Error;
-
-    *PBytesTransferred = 0;
-    Error = 0;
-
-    LOG("(File=%p, IoVector->Count=%lx, ByteOffset=%lx:%lx) = %d",
-        File, IoVector->Count,
-        ByteOffset ? ByteOffset->HighPart : -1,
-        ByteOffset ? ByteOffset->LowPart : -1,
-        Error);
-    return Error;
-}
-#endif
 
 static INT DeviceOpen(
     PLX_CALL_CONTEXT CallContext,
     PLX_DEVICE Device,
-    ULONG OpenFlags,
+    ULONG Flags,
     PLX_FILE *PFile)
 {
     static LX_FILE_CALLBACKS FileCallbacks =
@@ -256,13 +212,7 @@ static INT DeviceOpen(
         .Flush = FileFlush,
         .Ioctl = FileIoctl,
         .Read = FileRead,
-#if 0
-        .ReadVector = FileReadVector,
-#endif
         .Write = FileWrite,
-#if 0
-        .WriteVector = FileWriteVector,
-#endif
     };
     PVOID Buffer = 0;
     FILE *File;
@@ -296,7 +246,7 @@ exit:
     if (0 != Buffer)
         ExFreePoolWithTag(Buffer, POOLTAG);
 
-    LOG("(Device=%p, OpenFlags=%lx) = %d", Device, OpenFlags, Error);
+    LOG("(Device=%p, Flags=%lx) = %d", Device, Flags, Error);
     return Error;
 }
 

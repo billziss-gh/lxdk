@@ -42,7 +42,7 @@ typedef LX_SUBSYSTEM_CREATE_INITIAL_NAMESPACE *PLX_SUBSYSTEM_CREATE_INITIAL_NAME
 typedef INT LX_DEVICE_OPEN(
     PLX_CALL_CONTEXT CallContext,
     PLX_DEVICE Device,
-    ULONG OpenFlags,
+    ULONG Flags,
     PLX_FILE *PFile);
 typedef INT LX_DEVICE_DELETE(
     PLX_DEVICE Device);
@@ -65,17 +65,16 @@ typedef INT LX_FILE_READ(
     PLX_CALL_CONTEXT CallContext,
     PLX_FILE File,
     PVOID Buffer,
-    ULONG Length,
+    SIZE_T Length,
     PLARGE_INTEGER ByteOffset,
-    ULONG Flags,
-    PUINT32 PBytesTransferred);
+    PSIZE_T PBytesTransferred);
 typedef INT LX_FILE_READ_VECTOR(
     PLX_CALL_CONTEXT CallContext,
     PLX_FILE File,
     PLX_IOVECTOR IoVector,
     PLARGE_INTEGER ByteOffset,
     ULONG Flags,
-    PUINT32 PBytesTransferred);
+    PSIZE_T PBytesTransferred);
 typedef INT LX_FILE_RELEASE(
     PLX_CALL_CONTEXT CallContext,
     PLX_FILE File);
@@ -83,17 +82,16 @@ typedef INT LX_FILE_WRITE(
     PLX_CALL_CONTEXT CallContext,
     PLX_FILE File,
     PVOID Buffer,
-    ULONG Length,
+    SIZE_T Length,
     PLARGE_INTEGER ByteOffset,
-    ULONG Flags,
-    PUINT32 PBytesTransferred);
+    PSIZE_T PBytesTransferred);
 typedef INT LX_FILE_WRITE_VECTOR(
     PLX_CALL_CONTEXT CallContext,
     PLX_FILE File,
     PLX_IOVECTOR IoVector,
     PLARGE_INTEGER ByteOffset,
     ULONG Flags,
-    PUINT32 PBytesTransferred);
+    PSIZE_T PBytesTransferred);
 
 typedef LX_FILE_DELETE *PLX_FILE_DELETE;
 typedef LX_FILE_FLUSH *PLX_FILE_FLUSH;
@@ -233,7 +231,7 @@ struct _LX_FILE_CALLBACKS
 struct _LX_IOVECTOR_BUFFER
 {
     PVOID Buffer;
-    ULONG Length;
+    SIZE_T Length;
 };
 
 struct _LX_IOVECTOR
