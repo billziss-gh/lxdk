@@ -3,6 +3,13 @@
  *
  * @copyright 2019 Bill Zissimopoulos
  */
+/*
+ * This file is part of Lxdk.
+ *
+ * You can redistribute it and/or modify it under the terms of the GNU
+ * Lesser General Public License version 3 as published by the Free
+ * Software Foundation.
+ */
 
 #ifndef LXDK_ERRNO_H_INCLUDED
 #define LXDK_ERRNO_H_INCLUDED
