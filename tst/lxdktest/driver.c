@@ -17,12 +17,24 @@
 #pragma warning(disable:4100)           /* unreferenced formal parameter */
 
 #define LOG(Format, ...)                DbgPrint("%s" Format "\n", __FUNCTION__, __VA_ARGS__)
+#define POOLTAG                         'LXDK'
+#define BUFSIZE                         1024
+
+typedef struct
+{
+    PVOID Buffer;
+} FILE;
 
 static INT FileDelete(
     PLX_CALL_CONTEXT CallContext,
-    PLX_FILE File)
+    PLX_FILE File0)
 {
+    FILE *File = (FILE *)File0;
     INT Error;
+
+    if (0 != File->Buffer)
+        ExFreePoolWithTag(File->Buffer, POOLTAG);
+    File->Buffer = 0;
 
     Error = 0;
 
@@ -44,32 +56,92 @@ static INT FileFlush(
 
 static INT FileIoctl(
     PLX_CALL_CONTEXT CallContext,
-    PLX_FILE File,
+    PLX_FILE File0,
     ULONG Code,
     PVOID Buffer)
 {
+    FILE *File = (FILE *)File0;
     INT Error;
+
+    switch (Code)
+    {
+    case 0x8ead:
+        try
+        {
+            ProbeForWrite(Buffer, sizeof(ULONG), 1);
+            RtlCopyMemory(Buffer, File->Buffer, sizeof(ULONG));
+        }
+        except (EXCEPTION_EXECUTE_HANDLER)
+        {
+            Error = -EFAULT;
+            goto exit;
+        }
+        break;
+
+    case 0x817e:
+        try
+        {
+            ProbeForRead(Buffer, sizeof(ULONG), 1);
+            RtlCopyMemory(File->Buffer, Buffer, sizeof(ULONG));
+        }
+        except (EXCEPTION_EXECUTE_HANDLER)
+        {
+            Error = -EFAULT;
+            goto exit;
+        }
+
+    default:
+        Error = -EINVAL;
+        goto exit;
+    }
 
     Error = 0;
 
+exit:
     LOG("(File=%p, Code=%lx) = %d", File, Code, Error);
     return Error;
 }
 
 static INT FileRead(
     PLX_CALL_CONTEXT CallContext,
-    PLX_FILE File,
+    PLX_FILE File0,
     PVOID Buffer,
     ULONG Length,
     PLARGE_INTEGER ByteOffset,
     ULONG Flags,
     PUINT32 PBytesTransferred)
 {
+    FILE *File = (FILE *)File0;
+    ULONG Offset, EndOffset;
     INT Error;
 
     *PBytesTransferred = 0;
+
+    Offset = 0;
+    if (0 != ByteOffset)
+        Offset = ByteOffset->LowPart;
+    EndOffset = Offset + Length;
+
+    if (Offset > BUFSIZE)
+        Offset = BUFSIZE;
+    if (EndOffset > BUFSIZE)
+        EndOffset = BUFSIZE;
+
+    try
+    {
+        ProbeForWrite(Buffer, EndOffset - Offset, 1);
+        RtlCopyMemory(Buffer, (PUINT8)File->Buffer + Offset, EndOffset - Offset);
+    }
+    except (EXCEPTION_EXECUTE_HANDLER)
+    {
+        Error = -EFAULT;
+        goto exit;
+    }
+
+    *PBytesTransferred = EndOffset - Offset;
     Error = 0;
 
+exit:
     LOG("(File=%p, Length=%lx, ByteOffset=%lx:%lx) = %d",
         File, Length,
         ByteOffset ? ByteOffset->HighPart : -1,
@@ -78,6 +150,7 @@ static INT FileRead(
     return Error;
 }
 
+#if 0
 static INT FileReadVector(
     PLX_CALL_CONTEXT CallContext,
     PLX_FILE File,
@@ -98,33 +171,48 @@ static INT FileReadVector(
         Error);
     return Error;
 }
-
-static INT FileRelease(
-    PLX_CALL_CONTEXT CallContext,
-    PLX_FILE File)
-{
-    INT Error;
-
-    Error = 0;
-
-    LOG("(File=%p) = %d", File, Error);
-    return Error;
-}
+#endif
 
 static INT FileWrite(
     PLX_CALL_CONTEXT CallContext,
-    PLX_FILE File,
+    PLX_FILE File0,
     PVOID Buffer,
     ULONG Length,
     PLARGE_INTEGER ByteOffset,
     ULONG Flags,
     PUINT32 PBytesTransferred)
 {
+    FILE *File = (FILE *)File0;
+    ULONG Offset, EndOffset;
     INT Error;
 
     *PBytesTransferred = 0;
+
+    Offset = 0;
+    if (0 != ByteOffset)
+        Offset = ByteOffset->LowPart;
+    EndOffset = Offset + Length;
+
+    if (Offset > BUFSIZE)
+        Offset = BUFSIZE;
+    if (EndOffset > BUFSIZE)
+        EndOffset = BUFSIZE;
+
+    try
+    {
+        ProbeForRead(Buffer, EndOffset - Offset, 1);
+        RtlCopyMemory((PUINT8)File->Buffer + Offset, Buffer, EndOffset - Offset);
+    }
+    except (EXCEPTION_EXECUTE_HANDLER)
+    {
+        Error = -EFAULT;
+        goto exit;
+    }
+
+    *PBytesTransferred = Length;
     Error = 0;
 
+exit:
     LOG("(File=%p, Length=%lx, ByteOffset=%lx:%lx) = %d",
         File, Length,
         ByteOffset ? ByteOffset->HighPart : -1,
@@ -133,6 +221,7 @@ static INT FileWrite(
     return Error;
 }
 
+#if 0
 static INT FileWriteVector(
     PLX_CALL_CONTEXT CallContext,
     PLX_FILE File,
@@ -153,6 +242,7 @@ static INT FileWriteVector(
         Error);
     return Error;
 }
+#endif
 
 static INT DeviceOpen(
     PLX_CALL_CONTEXT CallContext,
@@ -166,27 +256,46 @@ static INT DeviceOpen(
         .Flush = FileFlush,
         .Ioctl = FileIoctl,
         .Read = FileRead,
+#if 0
         .ReadVector = FileReadVector,
-        .Release = FileRelease,
+#endif
         .Write = FileWrite,
+#if 0
         .WriteVector = FileWriteVector,
+#endif
     };
-    PLX_FILE File;
+    PVOID Buffer = 0;
+    FILE *File;
     INT Error;
 
     *PFile = 0;
 
-    File = VfsFileAllocate(0, &FileCallbacks);
+    Buffer = ExAllocatePoolWithTag(NonPagedPool, BUFSIZE, POOLTAG);
+    if (0 == Buffer)
+    {
+        Error = -ENOMEM;
+        goto exit;
+    }
+
+    File = (FILE *)VfsFileAllocate(sizeof *File, &FileCallbacks);
     if (0 == File)
     {
         Error = -ENOMEM;
         goto exit;
     }
 
-    *PFile = File;
+    RtlZeroMemory(Buffer, BUFSIZE);
+    RtlZeroMemory(File, sizeof *File);
+    File->Buffer = Buffer;
+    Buffer = 0;
+
+    *PFile = (PLX_FILE)File;
     Error = 0;
 
 exit:
+    if (0 != Buffer)
+        ExFreePoolWithTag(Buffer, POOLTAG);
+
     LOG("(Device=%p, OpenFlags=%lx) = %d", Device, OpenFlags, Error);
     return Error;
 }
@@ -211,7 +320,6 @@ static INT CreateInitialNamespace(
         .Delete = DeviceDelete,
     };
     PLX_DEVICE Device = 0;
-    LX_VFS_STARTUP_ENTRY Entry;
     INT Error;
 
     Device = VfsDeviceMinorAllocate(&DeviceCallbacks, sizeof(LX_DEVICE));
@@ -221,26 +329,7 @@ static INT CreateInitialNamespace(
         goto exit;
     }
 
-    RtlZeroMemory(&Entry, sizeof Entry);
-    Entry.Kind = VfsStartupEntryNode;
-    //RtlInitUnicodeString(&Entry.Path, L"/dev/lxdktest");
-        /*
-         * There appears to be a problem with creating entries in /dev.
-         * These entries appear on the Windows backed rootfs, but they
-         * do not appear in the Linux /dev tmpfs. This may be because
-         * the /dev tmpfs appears to be mounted well after VfsInitialize
-         * (by init).
-         */
-    RtlInitUnicodeString(&Entry.Path, L"/lxdktest");
-    Entry.Node.Mode = 020666;
-    Entry.Node.DeviceMajor = 10;
-    Entry.Node.DeviceMinor = 0x5BABE;
-
-    LxpDevMiscRegister(Instance, Device, Entry.Node.DeviceMinor);
-
-    Error = VfsInitializeStartupEntries(Instance, &Entry, 1);
-    if (0 > Error && -EEXIST != Error)
-        goto exit;
+    LxpDevMiscRegister(Instance, Device, 0x5BABE);
 
     Error = 0;
 
