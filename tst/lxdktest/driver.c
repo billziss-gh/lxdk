@@ -184,7 +184,7 @@ exit:
     return Error;
 }
 
-static INT DeviceUninitialize(
+static INT DeviceDelete(
     PLX_DEVICE Device)
 {
     INT Error;
@@ -201,7 +201,7 @@ static INT CreateInitialNamespace(
     static LX_DEVICE_CALLBACKS DeviceCallbacks =
     {
         .Open = DeviceOpen,
-        .Uninitialize = DeviceUninitialize,
+        .Delete = DeviceDelete,
     };
     PLX_DEVICE Device = 0;
     LX_VFS_STARTUP_ENTRY Entry;
@@ -224,7 +224,7 @@ static INT CreateInitialNamespace(
     LxpDevMiscRegister(Instance, Device, Entry.Node.DeviceMinor);
 
     Error = VfsInitializeStartupEntries(Instance, &Entry, 1);
-    if (0 > Error)
+    if (0 > Error && -EEXIST != Error)
         goto exit;
 
     Error = 0;
@@ -233,6 +233,7 @@ exit:
     if (0 != Device)
         VfsDeviceMinorDereference(Device);
 
+    LOG("(Instance=%p) = %d", Instance, Error);
     return Error;
 }
 
