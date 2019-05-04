@@ -216,7 +216,15 @@ static INT CreateInitialNamespace(
 
     RtlZeroMemory(&Entry, sizeof Entry);
     Entry.Kind = VfsStartupEntryNode;
-    RtlInitUnicodeString(&Entry.Path, L"/dev/lxdktest");
+    //RtlInitUnicodeString(&Entry.Path, L"/dev/lxdktest");
+        /*
+         * There appears to be a problem with creating entries in /dev.
+         * These entries appear on the Windows backed rootfs, but they
+         * do not appear in the Linux /dev tmpfs. This may be because
+         * the /dev tmpfs appears to be mounted well after VfsInitialize
+         * (by init).
+         */
+    RtlInitUnicodeString(&Entry.Path, L"/lxdktest");
     Entry.Node.Mode = 020666;
     Entry.Node.DeviceMajor = 10;
     Entry.Node.DeviceMinor = 0x5BABE;
