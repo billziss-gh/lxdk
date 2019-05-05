@@ -4,7 +4,7 @@
  * @copyright 2019 Bill Zissimopoulos
  */
 /*
- * This file is part of Lxdk.
+ * This file is part of LxDK.
  *
  * You can redistribute it and/or modify it under the terms of the GNU
  * Lesser General Public License version 3 as published by the Free
@@ -19,7 +19,7 @@
 
 #define LOG(Format, ...)                DbgPrint("%s" Format "\n", __FUNCTION__, __VA_ARGS__)
 
-#define LXDK_REGPATH                    "\\Registry\\Machine\\Software\\Lxdk"
+#define LXDK_REGPATH                    "\\Registry\\Machine\\Software\\LxDK"
 #define LXDK_REGPATH_SERVICES           LXDK_REGPATH "\\Services"
 
 NTSTATUS RegistryEnumerateKeys(

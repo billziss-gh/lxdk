@@ -13,7 +13,7 @@ This document uses the asciidoc format: http://asciidoc.org.
 CONTRIBUTOR AGREEMENT
 ---------------------
 
-This CONTRIBUTOR AGREEMENT applies to any contribution that you make to the Lxdk project (the "project"), and sets out the intellectual property rights you grant to us in the contributed materials. The term “us” shall mean the original author of this project: Bill Zissimopoulos <billziss at navimatics.com>. The term “you” shall mean the persons or entities identified below. If you agree to be bound by these terms, add your name and email address to the CONTRIBUTOR LIST below; this action will constitute signing this CONTRIBUTOR AGREEMENT. These terms and conditions constitute a binding legal agreement.
+This CONTRIBUTOR AGREEMENT applies to any contribution that you make to the LxDK project (the "project"), and sets out the intellectual property rights you grant to us in the contributed materials. The term “us” shall mean the original author of this project: Bill Zissimopoulos <billziss at navimatics.com>. The term “you” shall mean the persons or entities identified below. If you agree to be bound by these terms, add your name and email address to the CONTRIBUTOR LIST below; this action will constitute signing this CONTRIBUTOR AGREEMENT. These terms and conditions constitute a binding legal agreement.
 
 1. The term 'contribution' or ‘contributed materials’ means any source code, object code, patch, tool, sample, graphic, specification, manual, documentation, or any other material posted or submitted by you to the project.
 

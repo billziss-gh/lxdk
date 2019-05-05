@@ -15,4 +15,4 @@ for %%f in (lxldr.sys lxdktest.sys) do (
 )
 echo sc create lxldr type=kernel binPath=%%~dp0lxldr.sys         >%TARGET%kminst.bat
 echo sc create lxdktest type=kernel binPath=%%~dp0lxdktest.sys  >>%TARGET%kminst.bat
-echo reg add HKLM\Software\Lxdk\Services\lxdktest /f            >>%TARGET%kminst.bat
+echo reg add HKLM\Software\LxDK\Services\lxdktest /f            >>%TARGET%kminst.bat

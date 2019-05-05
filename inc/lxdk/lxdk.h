@@ -4,7 +4,7 @@
  * @copyright 2019 Bill Zissimopoulos
  */
 /*
- * This file is part of Lxdk.
+ * This file is part of LxDK.
  *
  * You can redistribute it and/or modify it under the terms of the GNU
  * Lesser General Public License version 3 as published by the Free
