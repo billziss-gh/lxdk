@@ -1,5 +1,5 @@
 /**
- * @file lxdktest/driver.c
+ * @file lxtstdrv/driver.c
  *
  * @copyright 2019 Bill Zissimopoulos
  */

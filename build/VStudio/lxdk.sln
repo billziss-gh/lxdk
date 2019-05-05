@@ -7,7 +7,7 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lxldr", "lxldr.vcxproj", "{
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "testing", "testing", "{DF3352EF-69B3-491F-A639-278099B053EF}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lxdktest", "testing\lxdktest.vcxproj", "{255721EA-7558-429F-BC93-5ABFF223D9F0}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "lxtstdrv", "testing\lxtstdrv.vcxproj", "{255721EA-7558-429F-BC93-5ABFF223D9F0}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "installer", "installer", "{64A1AAEC-9328-4488-951A-C486C4AA539C}"
 EndProject

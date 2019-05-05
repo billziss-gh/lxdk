@@ -63,13 +63,13 @@
                 <File Name="lxldr.sys" KeyPath="yes" />
             </Component>
 
-            <Component Id="C.lxdktest.sys">
-                <File Name="lxdktest.sys" KeyPath="yes" />
+            <Component Id="C.lxtstdrv.sys">
+                <File Name="lxtstdrv.sys" KeyPath="yes" />
                 <RegistryKey
                     Root="HKLM"
                     Key="[P.ServicesRegistryKey]">
                     <RegistryKey
-                        Key="lxdktest" />
+                        Key="lxtstdrv" />
                 </RegistryKey>
             </Component>
         </DirectoryRef>
@@ -92,8 +92,8 @@
             </Component>
         </DirectoryRef>
         <DirectoryRef Id="SMPDIR" FileSource="..\..\..\tst">
-            <Directory Id="SMPDIR.lxdktest" Name="lxdktest">
-                <Component Id="C.lxdktest.driver.c">
+            <Directory Id="SMPDIR.lxtstdrv" Name="lxtstdrv">
+                <Component Id="C.lxtstdrv.driver.c">
                     <File Name="driver.c" KeyPath="yes" />
                 </Component>
             </Directory>
@@ -102,8 +102,8 @@
             <Component Id="C.lxldr.pdb">
                 <File Name="lxldr.pdb" Source="..\build\$(var.Configuration)\lxldr.public.pdb" KeyPath="yes" />
             </Component>
-            <Component Id="C.lxdktest.pdb">
-                <File Name="lxdktest.pdb" Source="..\build\$(var.Configuration)\lxdktest.public.pdb" KeyPath="yes" />
+            <Component Id="C.lxtstdrv.pdb">
+                <File Name="lxtstdrv.pdb" Source="..\build\$(var.Configuration)\lxtstdrv.public.pdb" KeyPath="yes" />
             </Component>
         </DirectoryRef>
 
@@ -119,12 +119,12 @@
             <ComponentRef Id="C.lxldr.lib" />
         </ComponentGroup>
         <ComponentGroup Id="C.LxDK.smp">
-            <ComponentRef Id="C.lxdktest.sys" />
-            <ComponentRef Id="C.lxdktest.driver.c" />
+            <ComponentRef Id="C.lxtstdrv.sys" />
+            <ComponentRef Id="C.lxtstdrv.driver.c" />
         </ComponentGroup>
         <ComponentGroup Id="C.LxDK.sym">
             <ComponentRef Id="C.lxldr.pdb" />
-            <ComponentRef Id="C.lxdktest.pdb" />
+            <ComponentRef Id="C.lxtstdrv.pdb" />
         </ComponentGroup>
 
         <Feature
