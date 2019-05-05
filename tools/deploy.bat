@@ -14,5 +14,5 @@ for %%f in (lxldr.sys lxtstdrv.sys) do (
 	copy build\VStudio\build\%CONFIG%\%%f %TARGET% >nul
 )
 echo sc create lxldr type=kernel binPath=%%~dp0lxldr.sys         >%TARGET%kminst.bat
-echo sc create lxdktest type=kernel binPath=%%~dp0lxtstdrv.sys  >>%TARGET%kminst.bat
+echo sc create lxtstdrv type=kernel binPath=%%~dp0lxtstdrv.sys  >>%TARGET%kminst.bat
 echo reg add HKLM\Software\LxDK\Services\lxtstdrv /f            >>%TARGET%kminst.bat
