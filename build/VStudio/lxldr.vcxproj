@@ -86,6 +86,9 @@
     <ClCompile Include="..\..\src\lxldr\driver.c" />
     <ClCompile Include="..\..\src\lxldr\regutil.c" />
   </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\..\src\lxldr\version.rc" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
