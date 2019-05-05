@@ -161,7 +161,12 @@ struct _LX_VFS_STARTUP_ENTRY
 
 struct _LX_DEVICE
 {
-    UINT8 Reserved[256];
+    UINT64 Reserved[32];
+};
+
+struct _LX_FILE
+{
+    UINT64 Reserved[1];
 };
 
 struct _LX_DEVICE_CALLBACKS

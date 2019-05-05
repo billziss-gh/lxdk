@@ -22,21 +22,23 @@
 
 typedef struct
 {
+    LX_DEVICE Base;
+    PUINT8 Buffer;
+} DEVICE;
+
+typedef struct
+{
+    LX_FILE Base;
+    DEVICE *Device;
     EX_PUSH_LOCK Lock;
-    PVOID Buffer;
     OFF_T Offset;
 } FILE;
 
 static INT FileDelete(
     PLX_CALL_CONTEXT CallContext,
-    PLX_FILE File0)
+    PLX_FILE File)
 {
-    FILE *File = (FILE *)File0;
     INT Error;
-
-    if (0 != File->Buffer)
-        ExFreePoolWithTag(File->Buffer, POOLTAG);
-    File->Buffer = 0;
 
     Error = 0;
 
@@ -71,7 +73,7 @@ static INT FileIoctl(
         try
         {
             ProbeForWrite(Buffer, sizeof(ULONG), 1);
-            RtlCopyMemory(Buffer, File->Buffer, sizeof(ULONG));
+            RtlCopyMemory(Buffer, File->Device->Buffer, sizeof(ULONG));
         }
         except (EXCEPTION_EXECUTE_HANDLER)
         {
@@ -84,7 +86,7 @@ static INT FileIoctl(
         try
         {
             ProbeForRead(Buffer, sizeof(ULONG), 1);
-            RtlCopyMemory(File->Buffer, Buffer, sizeof(ULONG));
+            RtlCopyMemory(File->Device->Buffer, Buffer, sizeof(ULONG));
         }
         except (EXCEPTION_EXECUTE_HANDLER)
         {
@@ -134,7 +136,7 @@ static INT FileRead(
     try
     {
         ProbeForWrite(Buffer, EndOffset - Offset, 1);
-        RtlCopyMemory(Buffer, (PUINT8)File->Buffer + Offset, EndOffset - Offset);
+        RtlCopyMemory(Buffer, File->Device->Buffer + Offset, EndOffset - Offset);
     }
     except (EXCEPTION_EXECUTE_HANDLER)
     {
@@ -193,7 +195,7 @@ static INT FileWrite(
     try
     {
         ProbeForRead(Buffer, EndOffset - Offset, 1);
-        RtlCopyMemory((PUINT8)File->Buffer + Offset, Buffer, EndOffset  - Offset);
+        RtlCopyMemory(File->Device->Buffer + Offset, Buffer, EndOffset  - Offset);
     }
     except (EXCEPTION_EXECUTE_HANDLER)
     {
@@ -284,18 +286,10 @@ static INT DeviceOpen(
         .Write = FileWrite,
         .Seek = FileSeek,
     };
-    PVOID Buffer = 0;
     FILE *File;
     INT Error;
 
     *PFile = 0;
-
-    Buffer = ExAllocatePoolWithTag(NonPagedPool, BUFSIZE, POOLTAG);
-    if (0 == Buffer)
-    {
-        Error = -ENOMEM;
-        goto exit;
-    }
 
     File = (FILE *)VfsFileAllocate(sizeof *File, &FileCallbacks);
     if (0 == File)
@@ -304,27 +298,27 @@ static INT DeviceOpen(
         goto exit;
     }
 
-    RtlZeroMemory(Buffer, BUFSIZE);
     RtlZeroMemory(File, sizeof *File);
     ExInitializePushLock(&File->Lock);
-    File->Buffer = Buffer;
-    Buffer = 0;
+    File->Device = (DEVICE *)Device;
 
-    *PFile = (PLX_FILE)File;
+    *PFile = &File->Base;
     Error = 0;
 
 exit:
-    if (0 != Buffer)
-        ExFreePoolWithTag(Buffer, POOLTAG);
-
-    LOG("(Device=%p, Flags=%lx) = %d", Device, Flags, Error);
+    LOG("(File=%p, Flags=%lx) = %d", File, Flags, Error);
     return Error;
 }
 
 static INT DeviceDelete(
-    PLX_DEVICE Device)
+    PLX_DEVICE Device0)
 {
+    DEVICE *Device = (DEVICE *)Device0;
     INT Error;
+
+    if (0 != Device->Buffer)
+        ExFreePoolWithTag(Device->Buffer, POOLTAG);
+    Device->Buffer = 0;
 
     Error = 0;
 
@@ -340,23 +334,38 @@ static INT CreateInitialNamespace(
         .Open = DeviceOpen,
         .Delete = DeviceDelete,
     };
-    PLX_DEVICE Device = 0;
+    PVOID Buffer = 0;
+    DEVICE *Device = 0;
     INT Error;
 
-    Device = VfsDeviceMinorAllocate(&DeviceCallbacks, sizeof(LX_DEVICE));
+    Buffer = ExAllocatePoolWithTag(NonPagedPool, BUFSIZE, POOLTAG);
+    if (0 == Buffer)
+    {
+        Error = -ENOMEM;
+        goto exit;
+    }
+
+    Device = (DEVICE *)VfsDeviceMinorAllocate(&DeviceCallbacks, sizeof *Device);
     if (0 == Device)
     {
         Error = -ENOMEM;
         goto exit;
     }
 
-    LxpDevMiscRegister(Instance, Device, 0x5BABE);
+    RtlZeroMemory(Buffer, BUFSIZE);
+    Device->Buffer = Buffer;
+    Buffer = 0;
+
+    LxpDevMiscRegister(Instance, &Device->Base, 0x5BABE);
 
     Error = 0;
 
 exit:
     if (0 != Device)
-        VfsDeviceMinorDereference(Device);
+        VfsDeviceMinorDereference(&Device->Base);
+
+    if (0 != Buffer)
+        ExFreePoolWithTag(Buffer, POOLTAG);
 
     LOG("(Instance=%p) = %d", Instance, Error);
     return Error;
