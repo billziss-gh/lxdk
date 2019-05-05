@@ -148,8 +148,10 @@ NTSTATUS DriverEntry(
     PDRIVER_OBJECT DriverObject,
     PUNICODE_STRING RegistryPath)
 {
+#if 0
     if (!KD_DEBUGGER_NOT_PRESENT)
         DbgBreakPoint();
+#endif
 
     static LX_SUBSYSTEM Subsystem = { CreateInitialNamespace };
     NTSTATUS Status;
