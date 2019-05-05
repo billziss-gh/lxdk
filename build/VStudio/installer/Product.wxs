@@ -1,30 +1,213 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
-	<Product Id="*" Name="lxdk_msi" Language="1033" Version="1.0.0.0" Manufacturer="MyManufacturer" UpgradeCode="eb105f7d-ee2b-4318-ab2b-41ba87179595">
-		<Package InstallerVersion="200" Compressed="yes" InstallScope="perMachine" />
+    <Product
+        Id="*"
+        Name="$(var.MyProductName) $(var.MyProductVersion)"
+        Manufacturer="$(var.MyCompanyName)"
+        Version="$(var.MyVersion)"
+        Language="1033"
+        UpgradeCode="{AEAFAF08-9F27-40BB-B4E1-F677F1C93A62}">
 
-		<MajorUpgrade DowngradeErrorMessage="A newer version of [ProductName] is already installed." />
-		<MediaTemplate />
+        <Package
+            Description="$(var.MyProductName) - $(var.MyDescription)"
+            InstallerVersion="200"
+            Compressed="yes"
+            InstallScope="perMachine" />
+        <MajorUpgrade
+            Disallow="yes"
+            AllowDowngrades="no"
+            AllowSameVersionUpgrades="no"
+            DisallowUpgradeErrorMessage="An older version of $(var.MyProductName) is already installed. You must uninstall it before you can install this version."
+            DowngradeErrorMessage="A newer version of $(var.MyProductName) is already installed." />
+        <Media Id="1" Cabinet="LxDK.cab" EmbedCab="yes" />
 
-		<Feature Id="ProductFeature" Title="lxdk_msi" Level="1">
-			<ComponentGroupRef Id="ProductComponents" />
-		</Feature>
-	</Product>
+        <Property Id="P.RegistryKey">Software\$(var.MyProductName)</Property>
+        <Property Id="P.ServicesRegistryKey">Software\$(var.MyProductName)\Services</Property>
+        <Property Id="INSTALLDIR">
+            <RegistrySearch
+                Id="R.INSTALLDIR"
+                Root="HKLM"
+                Key="[P.RegistryKey]"
+                Name="InstallDir"
+                Type="raw" />
+        </Property>
 
-	<Fragment>
-		<Directory Id="TARGETDIR" Name="SourceDir">
-			<Directory Id="ProgramFilesFolder">
-				<Directory Id="INSTALLFOLDER" Name="lxdk_msi" />
-			</Directory>
-		</Directory>
-	</Fragment>
+        <Directory Id="TARGETDIR" Name="SourceDir">
+            <Directory Id="ProgramFiles64Folder">
+                <Directory Id="INSTALLDIR" Name="LxDK">
+                    <Directory Id="BINDIR" Name="bin" />
+                    <Directory Id="INCDIR" Name="inc" />
+                    <Directory Id="LIBDIR" Name="lib" />
+                    <Directory Id="SMPDIR" Name="samples" />
+                    <Directory Id="SYMDIR" Name="sym" />
+                </Directory>
+            </Directory>
+        </Directory>
 
-	<Fragment>
-		<ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
-			<!-- TODO: Remove the comments around this Component element and the ComponentRef below in order to add resources to this installer. -->
-			<!-- <Component Id="ProductComponent"> -->
-				<!-- TODO: Insert files, registry keys, and other resources here. -->
-			<!-- </Component> -->
-		</ComponentGroup>
-	</Fragment>
+        <DirectoryRef Id="INSTALLDIR">
+            <Component Id="C.INSTALLDIR" Guid="{46D046A4-F0F3-472E-AFEA-734E9894898F}">
+                <RegistryValue
+                    Root="HKLM"
+                    Key="[P.RegistryKey]"
+                    Name="InstallDir"
+                    Type="string"
+                    Value="[INSTALLDIR]"
+                    KeyPath="yes" />
+            </Component>
+            <Component Id="C.License.txt">
+                <File Name="License.txt" Source="..\..\..\License.txt" KeyPath="yes" />
+            </Component>
+        </DirectoryRef>
+        <DirectoryRef Id="BINDIR" FileSource="..\build\$(var.Configuration)">
+            <Component Id="C.lxldr.sys">
+                <File Name="lxldr.sys" KeyPath="yes" />
+            </Component>
+
+            <Component Id="C.lxdktest.sys">
+                <File Name="lxdktest.sys" KeyPath="yes" />
+                <RegistryKey
+                    Root="HKLM"
+                    Key="[P.ServicesRegistryKey]">
+                    <RegistryKey
+                        Key="lxdktest" />
+                </RegistryKey>
+            </Component>
+        </DirectoryRef>
+        <DirectoryRef Id="INCDIR" FileSource="..\..\..\inc">
+            <Directory Id="INCDIR.lxdk" Name="lxdk">
+                <Component Id="C.lxdk.h">
+                    <File Name="lxdk.h" KeyPath="yes" />
+                </Component>
+                <Component Id="C.errno.h">
+                    <File Name="errno.h" KeyPath="yes" />
+                </Component>
+            </Directory>
+        </DirectoryRef>
+        <DirectoryRef Id="LIBDIR" FileSource="..\..\..\lib">
+            <Component Id="C.lxcore.lib">
+                <File Name="lxcore.lib" KeyPath="yes" />
+            </Component>
+            <Component Id="C.lxldr.lib">
+                <File Name="lxldr.lib" KeyPath="yes" />
+            </Component>
+        </DirectoryRef>
+        <DirectoryRef Id="SMPDIR" FileSource="..\..\..\tst">
+            <Directory Id="SMPDIR.lxdktest" Name="lxdktest">
+                <Component Id="C.lxdktest.driver.c">
+                    <File Name="driver.c" KeyPath="yes" />
+                </Component>
+            </Directory>
+        </DirectoryRef>
+        <DirectoryRef Id="SYMDIR">
+            <Component Id="C.lxldr.pdb">
+                <File Name="lxldr.pdb" Source="..\build\$(var.Configuration)\lxldr.public.pdb" KeyPath="yes" />
+            </Component>
+            <Component Id="C.lxdktest.pdb">
+                <File Name="lxdktest.pdb" Source="..\build\$(var.Configuration)\lxdktest.public.pdb" KeyPath="yes" />
+            </Component>
+        </DirectoryRef>
+
+        <ComponentGroup Id="C.LxDK.bin">
+            <ComponentRef Id="C.lxldr.sys" />
+        </ComponentGroup>
+        <ComponentGroup Id="C.LxDK.inc">
+            <ComponentRef Id="C.lxdk.h" />
+            <ComponentRef Id="C.errno.h" />
+        </ComponentGroup>
+        <ComponentGroup Id="C.LxDK.lib">
+            <ComponentRef Id="C.lxcore.lib" />
+            <ComponentRef Id="C.lxldr.lib" />
+        </ComponentGroup>
+        <ComponentGroup Id="C.LxDK.smp">
+            <ComponentRef Id="C.lxdktest.sys" />
+            <ComponentRef Id="C.lxdktest.driver.c" />
+        </ComponentGroup>
+        <ComponentGroup Id="C.LxDK.sym">
+            <ComponentRef Id="C.lxldr.pdb" />
+            <ComponentRef Id="C.lxdktest.pdb" />
+        </ComponentGroup>
+
+        <Feature
+            Id="F.Main"
+            Level="1"
+            Title="$(var.MyProductName) $(var.MyProductVersion)"
+            Description="$(var.MyDescription)"
+            Display="expand"
+            ConfigurableDirectory="INSTALLDIR"
+            AllowAdvertise="no"
+            InstallDefault="local"
+            Absent="disallow">
+            <ComponentRef Id="C.INSTALLDIR" />
+            <ComponentRef Id="C.License.txt" />
+            <Feature
+                Id="F.User"
+                Level="1"
+                Title="Core"
+                Description="The core $(var.MyProductName) files."
+                AllowAdvertise="no"
+                InstallDefault="local"
+                Absent="disallow">
+                <ComponentGroupRef Id="C.LxDK.bin" />
+            </Feature>
+            <Feature
+                Id="F.Developer"
+                Level="1000"
+                Title="Developer"
+                Description="Additional files needed for development."
+                AllowAdvertise="no"
+                InstallDefault="local"
+                Absent="allow">
+                <ComponentGroupRef Id="C.LxDK.inc" />
+                <ComponentGroupRef Id="C.LxDK.lib" />
+                <ComponentGroupRef Id="C.LxDK.smp" />
+                <ComponentGroupRef Id="C.LxDK.sym" />
+            </Feature>
+        </Feature>
+
+        <!-- WixVariable Id="WixUIBannerBmp" Value="wixbanner.bmp" /-->
+        <!-- WixVariable Id="WixUIDialogBmp" Value="wixdialog-$(var.MyProductStage).bmp" /-->
+        <UI Id="FeatureTree">
+            <UIRef Id="WixUI_FeatureTree" />
+            <!-- skip the license agreement dialog; higher Order takes priority (weird) -->
+            <Publish
+                Dialog="WelcomeDlg"
+                Control="Next"
+                Event="NewDialog"
+                Value="CustomizeDlg"
+                Order="10">NOT Installed</Publish>
+            <Publish
+                Dialog="CustomizeDlg"
+                Control="Back"
+                Event="NewDialog"
+                Value="WelcomeDlg"
+                Order="10">NOT Installed</Publish>
+        </UI>
+
+        <!--
+        <Binary Id="CustomActions" SourceFile="..\build\$(var.Configuration)\CustomActions.dll" />
+        <CustomAction
+            Id="Params.ServiceRunning"
+            Property="ServiceRunning"
+            Value="$(var.MyProductName)" />
+        <CustomAction
+            Id="Action.ServiceRunning"
+            BinaryKey="CustomActions"
+            DllEntry="ServiceRunning"
+            Execute="immediate"
+            Return="ignore" />
+        <CustomAction
+            Id="Action.ServiceRunning.Error"
+            Error="The $(var.MyProductName) service appears to be running. If you just uninstalled $(var.MyProductName) please restart your computer. If you are running a development version of $(var.MyProductName) please remove it before proceeding." />
+        <InstallExecuteSequence>
+            <Custom Action="Params.ServiceRunning" Before="Action.ServiceRunning" />
+            <Custom Action="Action.ServiceRunning" Before="LaunchConditions" />
+            <Custom Action="Action.ServiceRunning.Error" After="Action.ServiceRunning">
+                <![CDATA[NOT Installed AND (0 <> ServiceRunning)]]>
+            </Custom>
+            <ScheduleReboot After="RemoveFiles">
+                <![CDATA[(REMOVE ~= "ALL") AND (0 <> ServiceRunning)]]>
+            </ScheduleReboot>
+        </InstallExecuteSequence>
+        -->
+    </Product>
 </Wix>

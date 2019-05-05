@@ -1,5 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\version.properties" />
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
@@ -61,6 +62,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>..\..\..\lib\lxldr.lib;..\..\..\lib\lxcore.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <StripPrivateSymbols>$(OutDir)$(TargetName).public.pdb</StripPrivateSymbols>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -69,6 +71,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>..\..\..\lib\lxldr.lib;..\..\..\lib\lxcore.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <StripPrivateSymbols>$(OutDir)$(TargetName).public.pdb</StripPrivateSymbols>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
