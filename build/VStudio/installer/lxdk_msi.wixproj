@@ -9,6 +9,7 @@
     <SchemaVersion>2.0</SchemaVersion>
     <OutputName>lxdk-$(MyVersion)</OutputName>
     <OutputType>Package</OutputType>
+    <Name>lxdk.msi</Name>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x64' ">
     <OutputPath>$(SolutionDir)build\$(Configuration)\</OutputPath>
