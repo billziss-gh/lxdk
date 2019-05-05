@@ -20,6 +20,8 @@
 
 #include <lxdk/errno.h>
 
+typedef INT64 OFF_T, *POFF_T;
+
 typedef struct _LX_SUBSYSTEM LX_SUBSYSTEM, *PLX_SUBSYSTEM;
 typedef struct _LX_INSTANCE LX_INSTANCE, *PLX_INSTANCE;
 typedef struct _LX_VFS_STARTUP_ENTRY LX_VFS_STARTUP_ENTRY, *PLX_VFS_STARTUP_ENTRY;
@@ -66,30 +68,36 @@ typedef INT LX_FILE_READ(
     PLX_FILE File,
     PVOID Buffer,
     SIZE_T Length,
-    PLARGE_INTEGER ByteOffset,
+    POFF_T POffset,
     PSIZE_T PBytesTransferred);
 typedef INT LX_FILE_READ_VECTOR(
     PLX_CALL_CONTEXT CallContext,
     PLX_FILE File,
     PLX_IOVECTOR IoVector,
-    PLARGE_INTEGER ByteOffset,
+    POFF_T POffset,
     ULONG Flags,
     PSIZE_T PBytesTransferred);
 typedef INT LX_FILE_RELEASE(
     PLX_CALL_CONTEXT CallContext,
     PLX_FILE File);
+typedef INT LX_FILE_SEEK(
+    PLX_CALL_CONTEXT CallContext,
+    PLX_FILE File,
+    OFF_T Offset,
+    INT Whence,
+    POFF_T PResultOffset);
 typedef INT LX_FILE_WRITE(
     PLX_CALL_CONTEXT CallContext,
     PLX_FILE File,
     PVOID Buffer,
     SIZE_T Length,
-    PLARGE_INTEGER ByteOffset,
+    POFF_T POffset,
     PSIZE_T PBytesTransferred);
 typedef INT LX_FILE_WRITE_VECTOR(
     PLX_CALL_CONTEXT CallContext,
     PLX_FILE File,
     PLX_IOVECTOR IoVector,
-    PLARGE_INTEGER ByteOffset,
+    POFF_T POffset,
     ULONG Flags,
     PSIZE_T PBytesTransferred);
 
@@ -99,6 +107,7 @@ typedef LX_FILE_IOCTL *PLX_FILE_IOCTL;
 typedef LX_FILE_READ *PLX_FILE_READ;
 typedef LX_FILE_READ_VECTOR *PLX_FILE_READ_VECTOR;
 typedef LX_FILE_RELEASE *PLX_FILE_RELEASE;
+typedef LX_FILE_SEEK *PLX_FILE_SEEK;
 typedef LX_FILE_WRITE *PLX_FILE_WRITE;
 typedef LX_FILE_WRITE_VECTOR *PLX_FILE_WRITE_VECTOR;
 
@@ -219,7 +228,7 @@ struct _LX_FILE_CALLBACKS
     PLX_FILE_RELEASE Release;
     PLX_FILE_READ_VECTOR ReadVector;
     PVOID Truncate;
-    PVOID Seek;
+    PLX_FILE_SEEK Seek;
     PVOID FilterPollRegistration;
     PVOID FAllocate;
     PVOID GetPathString;

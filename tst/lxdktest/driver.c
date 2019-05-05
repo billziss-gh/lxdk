@@ -22,7 +22,9 @@
 
 typedef struct
 {
+    EX_PUSH_LOCK Lock;
     PVOID Buffer;
+    OFF_T Offset;
 } FILE;
 
 static INT FileDelete(
@@ -107,20 +109,23 @@ static INT FileRead(
     PLX_FILE File0,
     PVOID Buffer,
     SIZE_T Length,
-    PLARGE_INTEGER ByteOffset,
+    POFF_T POffset,
     PSIZE_T PBytesTransferred)
 {
     FILE *File = (FILE *)File0;
-    INT64 Offset, EndOffset;
+    OFF_T Offset, EndOffset;
     INT Error;
 
     *PBytesTransferred = 0;
 
-    Offset = 0;
-    if (0 != ByteOffset)
-        Offset = ByteOffset->LowPart;
+    if (0 == POffset)
+    {
+        ExAcquirePushLockExclusive(&File->Lock);
+        Offset = File->Offset;
+    }
+    else
+        Offset = *POffset;
     EndOffset = Offset + Length;
-
     if (Offset > BUFSIZE)
         Offset = BUFSIZE;
     if (EndOffset > BUFSIZE)
@@ -137,15 +142,22 @@ static INT FileRead(
         goto exit;
     }
 
+    if (0 == POffset)
+    {
+        File->Offset = EndOffset;
+        ExReleasePushLockExclusive(&File->Lock);
+    }
+    else
+        *POffset = EndOffset;
+
     *PBytesTransferred = EndOffset - Offset;
     Error = 0;
 
 exit:
-    LOG("(File=%p, Length=%lu, ByteOffset=%lx:%lx, *PBytesTransferred = %lu) = %d",
+    LOG("(File=%p, Length=%lu, Offset=%lx, *PBytesTransferred=%lu) = %d",
         File,
         (unsigned)Length,
-        ByteOffset ? ByteOffset->HighPart : -1,
-        ByteOffset ? ByteOffset->LowPart : -1,
+        (unsigned)(0 != POffset ? *POffset : -1),
         (unsigned)*PBytesTransferred,
         Error);
     return Error;
@@ -156,20 +168,23 @@ static INT FileWrite(
     PLX_FILE File0,
     PVOID Buffer,
     SIZE_T Length,
-    PLARGE_INTEGER ByteOffset,
+    POFF_T POffset,
     PSIZE_T PBytesTransferred)
 {
     FILE *File = (FILE *)File0;
-    INT64 Offset, EndOffset;
+    OFF_T Offset, EndOffset;
     INT Error;
 
     *PBytesTransferred = 0;
 
-    Offset = 0;
-    if (0 != ByteOffset)
-        Offset = ByteOffset->LowPart;
+    if (0 == POffset)
+    {
+        ExAcquirePushLockExclusive(&File->Lock);
+        Offset = File->Offset;
+    }
+    else
+        Offset = *POffset;
     EndOffset = Offset + Length;
-
     if (Offset > BUFSIZE)
         Offset = BUFSIZE;
     if (EndOffset > BUFSIZE)
@@ -178,7 +193,7 @@ static INT FileWrite(
     try
     {
         ProbeForRead(Buffer, EndOffset - Offset, 1);
-        RtlCopyMemory((PUINT8)File->Buffer + Offset, Buffer, EndOffset - Offset);
+        RtlCopyMemory((PUINT8)File->Buffer + Offset, Buffer, EndOffset  - Offset);
     }
     except (EXCEPTION_EXECUTE_HANDLER)
     {
@@ -186,16 +201,70 @@ static INT FileWrite(
         goto exit;
     }
 
+    if (0 == POffset)
+    {
+        File->Offset += Length;
+        ExReleasePushLockExclusive(&File->Lock);
+    }
+    else
+        *POffset += Length;
+
     *PBytesTransferred = Length;
     Error = 0;
 
 exit:
-    LOG("(File=%p, Length=%lu, ByteOffset=%lx:%lx, *PBytesTransferred = %lu) = %d",
+    LOG("(File=%p, Length=%lu, Offset=%lx, *PBytesTransferred=%lu) = %d",
         File,
         (unsigned)Length,
-        ByteOffset ? ByteOffset->HighPart : -1,
-        ByteOffset ? ByteOffset->LowPart : -1,
+        (unsigned)(0 != POffset ? *POffset : -1),
         (unsigned)*PBytesTransferred,
+        Error);
+    return Error;
+}
+
+static INT FileSeek(
+    PLX_CALL_CONTEXT CallContext,
+    PLX_FILE File0,
+    OFF_T Offset,
+    INT Whence,
+    POFF_T PResultOffset)
+{
+    FILE *File = (FILE *)File0;
+    INT Error;
+
+    ExAcquirePushLockExclusive(&File->Lock);
+
+    switch (Whence)
+    {
+    case 0/* SEEK_SET */:
+        File->Offset = Offset;
+        break;
+
+    case 1/* SEEK_CUR */:
+        File->Offset = File->Offset + Offset;
+        break;
+
+    case 2/* SEEK_END */:
+        File->Offset = BUFSIZE + Offset; /* we do not maintain file "size" so best we can do! */
+        break;
+
+    default:
+        Error = -EINVAL;
+        goto exit;
+    }
+
+    *PResultOffset = File->Offset;
+
+    ExReleasePushLockExclusive(&File->Lock);
+
+    Error = 0;
+
+exit:
+    LOG("(File=%p, Offset=%lx, Whence=%d, *PResultOffset=%lx) = %d",
+        File,
+        (unsigned)Offset,
+        Whence,
+        (unsigned)*PResultOffset,
         Error);
     return Error;
 }
@@ -213,6 +282,7 @@ static INT DeviceOpen(
         .Ioctl = FileIoctl,
         .Read = FileRead,
         .Write = FileWrite,
+        .Seek = FileSeek,
     };
     PVOID Buffer = 0;
     FILE *File;
@@ -236,6 +306,7 @@ static INT DeviceOpen(
 
     RtlZeroMemory(Buffer, BUFSIZE);
     RtlZeroMemory(File, sizeof *File);
+    ExInitializePushLock(&File->Lock);
     File->Buffer = Buffer;
     Buffer = 0;
 
