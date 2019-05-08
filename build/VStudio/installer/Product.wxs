@@ -62,7 +62,9 @@
             <Component Id="C.lxldr.sys">
                 <File Name="lxldr.sys" KeyPath="yes" />
             </Component>
-
+            <Component Id="C.drvsetup.exe">
+                <File Name="drvsetup.exe" KeyPath="yes" />
+            </Component>
             <Component Id="C.lxtstdrv.sys">
                 <File Name="lxtstdrv.sys" KeyPath="yes" />
                 <RegistryKey
@@ -109,6 +111,7 @@
 
         <ComponentGroup Id="C.LxDK.bin">
             <ComponentRef Id="C.lxldr.sys" />
+            <ComponentRef Id="C.drvsetup.exe" />
         </ComponentGroup>
         <ComponentGroup Id="C.LxDK.inc">
             <ComponentRef Id="C.lxdk.h" />
@@ -183,31 +186,102 @@
                 Order="10">NOT Installed</Publish>
         </UI>
 
-        <!--
         <Binary Id="CustomActions" SourceFile="..\build\$(var.Configuration)\CustomActions.dll" />
+
+        <SetProperty
+            Id="Deferred.DrvsetupAdd"
+            Value='"[BINDIR]drvsetup.exe" add lxldr "[BINDIR]lxldr.sys"'
+            Before="Deferred.DrvsetupAdd"
+            Sequence="execute" />
         <CustomAction
-            Id="Params.ServiceRunning"
-            Property="ServiceRunning"
-            Value="$(var.MyProductName)" />
-        <CustomAction
-            Id="Action.ServiceRunning"
+            Id="Deferred.DrvsetupAdd"
             BinaryKey="CustomActions"
-            DllEntry="ServiceRunning"
+            DllEntry="ExecuteCommand"
+            Execute="deferred"
+            Impersonate="no"
+            Return="check" />
+        <SetProperty
+            Id="Rollback.DrvsetupAdd"
+            Value='"[BINDIR]drvsetup.exe" remove lxldr'
+            Before="Rollback.DrvsetupAdd"
+            Sequence="execute" />
+        <CustomAction
+            Id="Rollback.DrvsetupAdd"
+            BinaryKey="CustomActions"
+            DllEntry="ExecuteCommand"
+            Execute="rollback"
+            Impersonate="no"
+            Return="ignore" />
+        <InstallExecuteSequence>
+            <!--
+                deferred: `drvsetup add` on install or repair
+                rollback: `drvsetup remove` on install only
+            -->
+            <Custom Action="Rollback.DrvsetupAdd" After="InstallServices">
+                <![CDATA[(NOT Installed)]]>
+            </Custom>
+            <Custom Action="Deferred.DrvsetupAdd" After="Rollback.DrvsetupAdd">
+                <![CDATA[((NOT Installed) OR REINSTALL)]]>
+            </Custom>
+        </InstallExecuteSequence>
+
+        <SetProperty
+            Id="Deferred.DrvsetupRemove"
+            Value='"[BINDIR]drvsetup.exe" remove lxldr'
+            Before="Deferred.DrvsetupRemove"
+            Sequence="execute" />
+        <CustomAction
+            Id="Deferred.DrvsetupRemove"
+            BinaryKey="CustomActions"
+            DllEntry="ExecuteCommand"
+            Execute="deferred"
+            Impersonate="no"
+            Return="check" />
+        <SetProperty
+            Id="Rollback.DrvsetupRemove"
+            Value='"[BINDIR]drvsetup.exe" add lxldr "[BINDIR]lxldr.sys"'
+            Before="Rollback.DrvsetupRemove"
+            Sequence="execute" />
+        <CustomAction
+            Id="Rollback.DrvsetupRemove"
+            BinaryKey="CustomActions"
+            DllEntry="ExecuteCommand"
+            Execute="rollback"
+            Impersonate="no"
+            Return="check" />
+        <InstallExecuteSequence>
+            <!--
+                deferred: `drvsetup remove` on uninstall
+                rollback: `drvsetup add` on uninstall
+            -->
+            <Custom Action="Rollback.DrvsetupRemove" Before="DeleteServices">
+                <![CDATA[REMOVE]]>
+            </Custom>
+            <Custom Action="Deferred.DrvsetupRemove" After="Rollback.DrvsetupRemove">
+                <![CDATA[REMOVE]]>
+            </Custom>
+        </InstallExecuteSequence>
+
+    <CustomAction
+            Id="Immediate.CheckReboot"
+            BinaryKey="CustomActions"
+            DllEntry="CheckReboot"
             Execute="immediate"
             Return="ignore" />
-        <CustomAction
-            Id="Action.ServiceRunning.Error"
-            Error="The $(var.MyProductName) service appears to be running. If you just uninstalled $(var.MyProductName) please restart your computer. If you are running a development version of $(var.MyProductName) please remove it before proceeding." />
         <InstallExecuteSequence>
-            <Custom Action="Params.ServiceRunning" Before="Action.ServiceRunning" />
-            <Custom Action="Action.ServiceRunning" Before="LaunchConditions" />
-            <Custom Action="Action.ServiceRunning.Error" After="Action.ServiceRunning">
-                <![CDATA[NOT Installed AND (0 <> ServiceRunning)]]>
+            <Custom Action="Immediate.CheckReboot" After="InstallFinalize">
+                <![CDATA[(NOT Installed) OR REINSTALL OR REMOVE]]>
             </Custom>
-            <ScheduleReboot After="RemoveFiles">
-                <![CDATA[(REMOVE ~= "ALL") AND (0 <> ServiceRunning)]]>
+            <ScheduleReboot After="Immediate.CheckReboot">
+                <![CDATA[((NOT Installed) OR REINSTALL OR REMOVE) AND (0 <> CheckReboot)]]>
             </ScheduleReboot>
         </InstallExecuteSequence>
+
+        <!--
+            Specify WIXFAILWHENDEFERRED=1 on the msiexec cmdline for rollback testing.
+            See http://tinyurl.com/yxkaywek
         -->
+        <Property Id="WIXFAILWHENDEFERRED" Value="0" Secure="yes" />
+        <CustomActionRef Id="WixFailWhenDeferred" />
     </Product>
 </Wix>
