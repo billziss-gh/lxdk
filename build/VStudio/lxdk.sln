@@ -13,9 +13,14 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "installer", "installer", "{
 EndProject
 Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "lxdk_msi", "installer\lxdk_msi.wixproj", "{51416635-A176-44BC-BC86-CF0345DA99A4}"
 	ProjectSection(ProjectDependencies) = postProject
+		{9A0B0512-54B2-4EDB-A332-E1242794DD63} = {9A0B0512-54B2-4EDB-A332-E1242794DD63}
 		{19C44B21-E4CD-4DA7-B70F-91FA546037ED} = {19C44B21-E4CD-4DA7-B70F-91FA546037ED}
 		{255721EA-7558-429F-BC93-5ABFF223D9F0} = {255721EA-7558-429F-BC93-5ABFF223D9F0}
 	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{8D191794-3B7A-41FF-BEBA-99A8AF1D72CD}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "drvsetup", "drvsetup.vcxproj", "{9A0B0512-54B2-4EDB-A332-E1242794DD63}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -39,6 +44,10 @@ Global
 		{51416635-A176-44BC-BC86-CF0345DA99A4}.Debug|x64.Build.0 = Debug|x64
 		{51416635-A176-44BC-BC86-CF0345DA99A4}.Release|x64.ActiveCfg = Release|x64
 		{51416635-A176-44BC-BC86-CF0345DA99A4}.Release|x64.Build.0 = Release|x64
+		{9A0B0512-54B2-4EDB-A332-E1242794DD63}.Debug|x64.ActiveCfg = Debug|x64
+		{9A0B0512-54B2-4EDB-A332-E1242794DD63}.Debug|x64.Build.0 = Debug|x64
+		{9A0B0512-54B2-4EDB-A332-E1242794DD63}.Release|x64.ActiveCfg = Release|x64
+		{9A0B0512-54B2-4EDB-A332-E1242794DD63}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -46,6 +55,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{255721EA-7558-429F-BC93-5ABFF223D9F0} = {DF3352EF-69B3-491F-A639-278099B053EF}
 		{51416635-A176-44BC-BC86-CF0345DA99A4} = {64A1AAEC-9328-4488-951A-C486C4AA539C}
+		{9A0B0512-54B2-4EDB-A332-E1242794DD63} = {8D191794-3B7A-41FF-BEBA-99A8AF1D72CD}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {9D084AA2-4A9C-4C99-948C-F8AFFFCFA0F0}
