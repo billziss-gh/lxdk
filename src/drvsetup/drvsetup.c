@@ -73,7 +73,7 @@ static DWORD add(PWSTR DriverName, PWSTR DriverPath, DWORD StartType)
     PVOID VersionInfo = 0;
     SERVICE_DESCRIPTIONW SvcDescription;
     DWORD Size;
-    BOOL Created = FALSE;
+    BOOL Created = FALSE, RebootRequired = FALSE;
     DWORD Result;
 
     ScmHandle = OpenSCManagerW(0, 0, SC_MANAGER_CREATE_SERVICE);
@@ -83,18 +83,32 @@ static DWORD add(PWSTR DriverName, PWSTR DriverPath, DWORD StartType)
         goto exit;
     }
 
-    SvcHandle = CreateServiceW(ScmHandle, DriverName, DriverName,
-        SERVICE_CHANGE_CONFIG | SERVICE_START | SERVICE_QUERY_STATUS | DELETE,
-        SERVICE_KERNEL_DRIVER, StartType, SERVICE_ERROR_NORMAL, DriverPath,
-        0, 0, 0, 0, 0);
-    if (0 == SvcHandle)
+    SvcHandle = OpenServiceW(ScmHandle, DriverName,
+        SERVICE_CHANGE_CONFIG | SERVICE_START | SERVICE_QUERY_STATUS);
+    if (0 != SvcHandle)
     {
-        Result = GetLastError();
-        if (ERROR_SERVICE_EXISTS == Result)
-            Result = ERROR_SUCCESS_REBOOT_REQUIRED;
-        goto exit;
+        if (!ChangeServiceConfigW(SvcHandle,
+            SERVICE_FILE_SYSTEM_DRIVER, SERVICE_DEMAND_START, SERVICE_ERROR_NORMAL, DriverPath,
+            0, 0, 0, 0, 0, DriverName))
+        {
+            Result = GetLastError();
+            goto exit;
+        }
+        RebootRequired = TRUE;
     }
-    Created = TRUE;
+    else
+    {
+        SvcHandle = CreateServiceW(ScmHandle, DriverName, DriverName,
+            SERVICE_CHANGE_CONFIG | SERVICE_START | SERVICE_QUERY_STATUS | DELETE,
+            SERVICE_KERNEL_DRIVER, StartType, SERVICE_ERROR_NORMAL, DriverPath,
+            0, 0, 0, 0, 0);
+        if (0 == SvcHandle)
+        {
+            Result = GetLastError();
+            goto exit;
+        }
+        Created = TRUE;
+    }
 
     Size = GetFileVersionInfoSizeW(DriverPath, &Size/*dummy*/);
     if (0 < Size)
@@ -118,7 +132,8 @@ static DWORD add(PWSTR DriverName, PWSTR DriverPath, DWORD StartType)
             Result = GetLastError();
             if (ERROR_SERVICE_ALREADY_RUNNING == Result)
                 Result = ERROR_SUCCESS;
-            goto exit;
+            else
+                goto exit;
         }
 
         Result = WaitServiceStatus(SvcHandle, SERVICE_RUNNING, 5000);
@@ -126,7 +141,7 @@ static DWORD add(PWSTR DriverName, PWSTR DriverPath, DWORD StartType)
             goto exit;
     }
 
-    Result = ERROR_SUCCESS;
+    Result = RebootRequired ? ERROR_SUCCESS_REBOOT_REQUIRED : ERROR_SUCCESS;
 
 exit:
     if (ERROR_SUCCESS != Result && Created)
