@@ -62,9 +62,6 @@
             <Component Id="C.lxldr.sys">
                 <File Name="lxldr.sys" KeyPath="yes" />
             </Component>
-            <Component Id="C.drvsetup.exe">
-                <File Name="drvsetup.exe" KeyPath="yes" />
-            </Component>
             <Component Id="C.lxtstdrv.sys">
                 <File Name="lxtstdrv.sys" KeyPath="yes" />
                 <RegistryKey
@@ -111,7 +108,6 @@
 
         <ComponentGroup Id="C.LxDK.bin">
             <ComponentRef Id="C.lxldr.sys" />
-            <ComponentRef Id="C.drvsetup.exe" />
         </ComponentGroup>
         <ComponentGroup Id="C.LxDK.inc">
             <ComponentRef Id="C.lxdk.h" />
@@ -188,25 +184,26 @@
 
         <Binary Id="CustomActions" SourceFile="..\build\$(var.Configuration)\CustomActions.dll" />
 
+        <!-- AddService lxldr "[BINDIR]lxldr.sys" SERVICE_KERNEL_DRIVER SERVICE_SYSTEM_START -->
         <SetProperty
-            Id="Deferred.DrvsetupAdd"
-            Value='"[BINDIR]drvsetup.exe" add lxldr "[BINDIR]lxldr.sys"'
-            Before="Deferred.DrvsetupAdd"
+            Id="Deferred.AddService"
+            Value='AddService lxldr "[BINDIR]lxldr.sys" 1 1'
+            Before="Deferred.AddService"
             Sequence="execute" />
         <CustomAction
-            Id="Deferred.DrvsetupAdd"
+            Id="Deferred.AddService"
             BinaryKey="CustomActions"
             DllEntry="ExecuteCommand"
             Execute="deferred"
             Impersonate="no"
             Return="check" />
         <SetProperty
-            Id="Rollback.DrvsetupAdd"
-            Value='"[BINDIR]drvsetup.exe" remove lxldr'
-            Before="Rollback.DrvsetupAdd"
+            Id="Rollback.AddService"
+            Value='RemoveService lxldr'
+            Before="Rollback.AddService"
             Sequence="execute" />
         <CustomAction
-            Id="Rollback.DrvsetupAdd"
+            Id="Rollback.AddService"
             BinaryKey="CustomActions"
             DllEntry="ExecuteCommand"
             Execute="rollback"
@@ -214,36 +211,37 @@
             Return="ignore" />
         <InstallExecuteSequence>
             <!--
-                deferred: `drvsetup add` on install or repair
-                rollback: `drvsetup remove` on install only
+                deferred: AddService on install or repair
+                rollback: RemoveService on install only
             -->
-            <Custom Action="Rollback.DrvsetupAdd" After="InstallServices">
+            <Custom Action="Rollback.AddService" After="InstallServices">
                 <![CDATA[(NOT Installed)]]>
             </Custom>
-            <Custom Action="Deferred.DrvsetupAdd" After="Rollback.DrvsetupAdd">
+            <Custom Action="Deferred.AddService" After="Rollback.AddService">
                 <![CDATA[((NOT Installed) OR REINSTALL)]]>
             </Custom>
         </InstallExecuteSequence>
 
+        <!-- RemoveService lxldr -->
         <SetProperty
-            Id="Deferred.DrvsetupRemove"
-            Value='"[BINDIR]drvsetup.exe" remove lxldr'
-            Before="Deferred.DrvsetupRemove"
+            Id="Deferred.RemoveService"
+            Value='RemoveService lxldr'
+            Before="Deferred.RemoveService"
             Sequence="execute" />
         <CustomAction
-            Id="Deferred.DrvsetupRemove"
+            Id="Deferred.RemoveService"
             BinaryKey="CustomActions"
             DllEntry="ExecuteCommand"
             Execute="deferred"
             Impersonate="no"
             Return="check" />
         <SetProperty
-            Id="Rollback.DrvsetupRemove"
-            Value='"[BINDIR]drvsetup.exe" add lxldr "[BINDIR]lxldr.sys"'
-            Before="Rollback.DrvsetupRemove"
+            Id="Rollback.RemoveService"
+            Value='AddService lxldr "[BINDIR]lxldr.sys" 1 1'
+            Before="Rollback.RemoveService"
             Sequence="execute" />
         <CustomAction
-            Id="Rollback.DrvsetupRemove"
+            Id="Rollback.RemoveService"
             BinaryKey="CustomActions"
             DllEntry="ExecuteCommand"
             Execute="rollback"
@@ -251,18 +249,18 @@
             Return="check" />
         <InstallExecuteSequence>
             <!--
-                deferred: `drvsetup remove` on uninstall
-                rollback: `drvsetup add` on uninstall
+                deferred: RemoveService on uninstall
+                rollback: AddService on uninstall
             -->
-            <Custom Action="Rollback.DrvsetupRemove" Before="DeleteServices">
+            <Custom Action="Rollback.RemoveService" Before="DeleteServices">
                 <![CDATA[REMOVE]]>
             </Custom>
-            <Custom Action="Deferred.DrvsetupRemove" After="Rollback.DrvsetupRemove">
+            <Custom Action="Deferred.RemoveService" After="Rollback.RemoveService">
                 <![CDATA[REMOVE]]>
             </Custom>
         </InstallExecuteSequence>
 
-    <CustomAction
+        <CustomAction
             Id="Immediate.CheckReboot"
             BinaryKey="CustomActions"
             DllEntry="CheckReboot"
@@ -272,9 +270,6 @@
             <Custom Action="Immediate.CheckReboot" After="InstallFinalize">
                 <![CDATA[(NOT Installed) OR REINSTALL OR REMOVE]]>
             </Custom>
-            <ScheduleReboot After="Immediate.CheckReboot">
-                <![CDATA[((NOT Installed) OR REINSTALL OR REMOVE) AND (0 <> CheckReboot)]]>
-            </ScheduleReboot>
         </InstallExecuteSequence>
 
         <!--
