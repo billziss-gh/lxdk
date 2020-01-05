@@ -23,29 +23,43 @@ EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
+		Installer.Debug|x64 = Installer.Debug|x64
+		Installer.Release|x64 = Installer.Release|x64
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
 		{19C44B21-E4CD-4DA7-B70F-91FA546037ED}.Debug|x64.ActiveCfg = Debug|x64
 		{19C44B21-E4CD-4DA7-B70F-91FA546037ED}.Debug|x64.Build.0 = Debug|x64
 		{19C44B21-E4CD-4DA7-B70F-91FA546037ED}.Debug|x64.Deploy.0 = Debug|x64
+		{19C44B21-E4CD-4DA7-B70F-91FA546037ED}.Installer.Debug|x64.ActiveCfg = Debug|x64
+		{19C44B21-E4CD-4DA7-B70F-91FA546037ED}.Installer.Debug|x64.Deploy.0 = Debug|x64
+		{19C44B21-E4CD-4DA7-B70F-91FA546037ED}.Installer.Release|x64.ActiveCfg = Release|x64
+		{19C44B21-E4CD-4DA7-B70F-91FA546037ED}.Installer.Release|x64.Deploy.0 = Release|x64
 		{19C44B21-E4CD-4DA7-B70F-91FA546037ED}.Release|x64.ActiveCfg = Release|x64
 		{19C44B21-E4CD-4DA7-B70F-91FA546037ED}.Release|x64.Build.0 = Release|x64
 		{19C44B21-E4CD-4DA7-B70F-91FA546037ED}.Release|x64.Deploy.0 = Release|x64
 		{255721EA-7558-429F-BC93-5ABFF223D9F0}.Debug|x64.ActiveCfg = Debug|x64
 		{255721EA-7558-429F-BC93-5ABFF223D9F0}.Debug|x64.Build.0 = Debug|x64
 		{255721EA-7558-429F-BC93-5ABFF223D9F0}.Debug|x64.Deploy.0 = Debug|x64
+		{255721EA-7558-429F-BC93-5ABFF223D9F0}.Installer.Debug|x64.ActiveCfg = Debug|x64
+		{255721EA-7558-429F-BC93-5ABFF223D9F0}.Installer.Debug|x64.Deploy.0 = Debug|x64
+		{255721EA-7558-429F-BC93-5ABFF223D9F0}.Installer.Release|x64.ActiveCfg = Release|x64
+		{255721EA-7558-429F-BC93-5ABFF223D9F0}.Installer.Release|x64.Deploy.0 = Release|x64
 		{255721EA-7558-429F-BC93-5ABFF223D9F0}.Release|x64.ActiveCfg = Release|x64
 		{255721EA-7558-429F-BC93-5ABFF223D9F0}.Release|x64.Build.0 = Release|x64
 		{255721EA-7558-429F-BC93-5ABFF223D9F0}.Release|x64.Deploy.0 = Release|x64
 		{51416635-A176-44BC-BC86-CF0345DA99A4}.Debug|x64.ActiveCfg = Debug|x64
-		{51416635-A176-44BC-BC86-CF0345DA99A4}.Debug|x64.Build.0 = Debug|x64
+		{51416635-A176-44BC-BC86-CF0345DA99A4}.Installer.Debug|x64.ActiveCfg = Debug|x64
+		{51416635-A176-44BC-BC86-CF0345DA99A4}.Installer.Debug|x64.Build.0 = Debug|x64
+		{51416635-A176-44BC-BC86-CF0345DA99A4}.Installer.Release|x64.ActiveCfg = Release|x64
+		{51416635-A176-44BC-BC86-CF0345DA99A4}.Installer.Release|x64.Build.0 = Release|x64
 		{51416635-A176-44BC-BC86-CF0345DA99A4}.Release|x64.ActiveCfg = Release|x64
-		{51416635-A176-44BC-BC86-CF0345DA99A4}.Release|x64.Build.0 = Release|x64
 		{B983A6DD-0F8E-4A2F-AF78-6320D4524D3B}.Debug|x64.ActiveCfg = Debug|x64
-		{B983A6DD-0F8E-4A2F-AF78-6320D4524D3B}.Debug|x64.Build.0 = Debug|x64
+		{B983A6DD-0F8E-4A2F-AF78-6320D4524D3B}.Installer.Debug|x64.ActiveCfg = Debug|x64
+		{B983A6DD-0F8E-4A2F-AF78-6320D4524D3B}.Installer.Debug|x64.Build.0 = Debug|x64
+		{B983A6DD-0F8E-4A2F-AF78-6320D4524D3B}.Installer.Release|x64.ActiveCfg = Release|x64
+		{B983A6DD-0F8E-4A2F-AF78-6320D4524D3B}.Installer.Release|x64.Build.0 = Release|x64
 		{B983A6DD-0F8E-4A2F-AF78-6320D4524D3B}.Release|x64.ActiveCfg = Release|x64
-		{B983A6DD-0F8E-4A2F-AF78-6320D4524D3B}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -63,6 +63,7 @@
     <Link>
       <AdditionalDependencies>..\..\lib\lxcore.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <StripPrivateSymbols>$(OutDir)$(TargetName).public.pdb</StripPrivateSymbols>
+      <AdditionalOptions>/PDBALTPATH:$(TargetFileName).pdb %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -72,6 +73,7 @@
     <Link>
       <AdditionalDependencies>..\..\lib\lxcore.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <StripPrivateSymbols>$(OutDir)$(TargetName).public.pdb</StripPrivateSymbols>
+      <AdditionalOptions>/PDBALTPATH:$(TargetFileName).pdb %(AdditionalOptions)</AdditionalOptions>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -88,6 +90,41 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="..\..\src\lxldr\version.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\src\lxldr\driver.inf.in">
+      <FileType>Document</FileType>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">set DriverFile=$(TargetFileName)
+set Provider="$(MyCompanyName)"
+set CatalogFile=driver.cat
+
+setlocal EnableDelayedExpansion
+if exist $(OutDir)driver.inf del $(OutDir)driver.inf
+for /f "delims=" %%l in (%(FullPath)) do (
+    set line=%%l
+    echo !line! &gt;&gt;$(OutDir)driver.inf
+)
+
+stampinf -d * -v $(MyVersion) -f $(OutDir)driver.inf</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Writing driver.inf</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(OutDir)driver.inf</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">false</LinkObjects>
+      <Command Condition="'$(Configuration)|$(Platform)'=='Release|x64'">set DriverFile=$(TargetFileName)
+set Provider="$(MyCompanyName)"
+set CatalogFile=driver.cat
+
+setlocal EnableDelayedExpansion
+if exist $(OutDir)driver.inf del $(OutDir)driver.inf
+for /f "delims=" %%l in (%(FullPath)) do (
+    set line=%%l
+    echo !line! &gt;&gt;$(OutDir)driver.inf
+)
+
+stampinf -d * -v $(MyVersion) -f $(OutDir)driver.inf</Command>
+      <Message Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Writing driver.inf</Message>
+      <Outputs Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(OutDir)driver.inf</Outputs>
+      <LinkObjects Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkObjects>
+    </CustomBuild>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -37,4 +37,9 @@
       <Filter>Source</Filter>
     </ResourceCompile>
   </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\src\lxldr\driver.inf.in">
+      <Filter>Source</Filter>
+    </CustomBuild>
+  </ItemGroup>
 </Project>
