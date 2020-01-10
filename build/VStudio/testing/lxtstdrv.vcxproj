@@ -62,8 +62,8 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>..\..\..\lib\lxldr.lib;..\..\..\lib\lxcore.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <StripPrivateSymbols>$(OutDir)$(TargetName).public.pdb</StripPrivateSymbols>
-      <AdditionalOptions>/PDBALTPATH:$(TargetFileName).pdb %(AdditionalOptions)</AdditionalOptions>
+      <StripPrivateSymbols>$(OutDir)$(TargetFileName).public.pdb</StripPrivateSymbols>
+      <ProgramDatabaseFile>$(OutDir)$(TargetFileName).pdb</ProgramDatabaseFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -72,8 +72,9 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>..\..\..\lib\lxldr.lib;..\..\..\lib\lxcore.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <StripPrivateSymbols>$(OutDir)$(TargetName).public.pdb</StripPrivateSymbols>
+      <StripPrivateSymbols>$(OutDir)$(TargetFileName).public.pdb</StripPrivateSymbols>
       <AdditionalOptions>/PDBALTPATH:$(TargetFileName).pdb %(AdditionalOptions)</AdditionalOptions>
+      <ProgramDatabaseFile>$(OutDir)$(TargetFileName).pdb</ProgramDatabaseFile>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

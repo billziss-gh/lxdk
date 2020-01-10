@@ -94,11 +94,11 @@
             </Directory>
         </DirectoryRef>
         <DirectoryRef Id="SYMDIR">
-            <Component Id="C.lxldr.pdb">
-                <File Name="lxldr.pdb" Source="..\build\$(var.Configuration)\lxldr.public.pdb" KeyPath="yes" />
+            <Component Id="C.lxldr.sys.pdb">
+                <File Name="lxldr.sys.pdb" Source="..\build\$(var.Configuration)\lxldr.sys.public.pdb" KeyPath="yes" />
             </Component>
-            <Component Id="C.lxtstdrv.pdb">
-                <File Name="lxtstdrv.pdb" Source="..\build\$(var.Configuration)\lxtstdrv.public.pdb" KeyPath="yes" />
+            <Component Id="C.lxtstdrv.sys.pdb">
+                <File Name="lxtstdrv.sys.pdb" Source="..\build\$(var.Configuration)\lxtstdrv.sys.public.pdb" KeyPath="yes" />
             </Component>
         </DirectoryRef>
 
@@ -119,8 +119,8 @@
             <ComponentRef Id="C.lxtstdrv.driver.c" />
         </ComponentGroup>
         <ComponentGroup Id="C.LxDK.sym">
-            <ComponentRef Id="C.lxldr.pdb" />
-            <ComponentRef Id="C.lxtstdrv.pdb" />
+            <ComponentRef Id="C.lxldr.sys.pdb" />
+            <ComponentRef Id="C.lxtstdrv.sys.pdb" />
         </ComponentGroup>
 
         <Feature
