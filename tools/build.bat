@@ -40,7 +40,7 @@ if X%SignedPackage%==X (
     devenv lxdk.sln /build "%Configuration%|x64"
     if errorlevel 1 goto fail
 
-    for %%f in (build\%Configuration%\lxldr.sys) do (
+    for %%f in (build\%Configuration%\lxldr.sys build\%Configuration%\lxtstdrv.sys) do (
         signtool sign /ac %CrossCert% /i %Issuer% /n %Subject% /fd sha1 /t http://timestamp.digicert.com %%f
         if errorlevel 1 set /a signfail=signfail+1
         signtool sign /as /ac %CrossCert% /i %Issuer% /n %Subject% /fd sha256 /tr http://timestamp.digicert.com /td sha256 %%f
