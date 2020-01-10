@@ -22,7 +22,6 @@
         <Media Id="1" Cabinet="LxDK.cab" EmbedCab="yes" />
 
         <Property Id="P.RegistryKey">Software\$(var.MyProductName)</Property>
-        <Property Id="P.ServicesRegistryKey">Software\$(var.MyProductName)\Services</Property>
         <Property Id="INSTALLDIR">
             <RegistrySearch
                 Id="R.INSTALLDIR"
@@ -62,14 +61,11 @@
             <Component Id="C.lxldr.sys">
                 <File Name="lxldr.sys" KeyPath="yes" />
             </Component>
+            <Component Id="C.lxreg.bat">
+                <File Name="lxreg.bat" Source="..\..\..\tools\lxreg.bat" KeyPath="yes" />
+            </Component>
             <Component Id="C.lxtstdrv.sys">
                 <File Name="lxtstdrv.sys" KeyPath="yes" />
-                <RegistryKey
-                    Root="HKLM"
-                    Key="[P.ServicesRegistryKey]">
-                    <RegistryKey
-                        Key="lxtstdrv" />
-                </RegistryKey>
             </Component>
         </DirectoryRef>
         <DirectoryRef Id="INCDIR" FileSource="..\..\..\inc">
@@ -108,6 +104,7 @@
 
         <ComponentGroup Id="C.LxDK.bin">
             <ComponentRef Id="C.lxldr.sys" />
+            <ComponentRef Id="C.lxreg.bat" />
         </ComponentGroup>
         <ComponentGroup Id="C.LxDK.inc">
             <ComponentRef Id="C.lxdk.h" />
