@@ -11,4 +11,9 @@
       <Filter>Source</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="..\..\..\tst\lxtstdrv\driver.inf.in">
+      <Filter>Source</Filter>
+    </CustomBuild>
+  </ItemGroup>
 </Project>
