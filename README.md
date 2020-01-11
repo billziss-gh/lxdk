@@ -10,7 +10,9 @@ The LxDK consists of the following:
 
 The LxDK is distributed as a Windows MSI that includes signed drivers.
 
-**Note that this release should be considered of ALPHA quality and you should therefore try it in a VM. Please also note that I have only tested this on Windows 10.0.17763.379. It will likely not work with earlier versions, and it may or may not work with later versions. Please report your findings via the GitHub Issues list.**
+**NOTES:**
+- This release should be considered of **ALPHA** quality and you should therefore try it in a VM.
+- This release has been tested on Windows 1809 (10.0.17763.379) and Windows 1909 (10.0.18363.418). It will likely not work with versions earlier than 1809, but it should work with in-between and later versions. Please report your findings via the GitHub Issues list.
 
 ## Documentation
 
@@ -23,6 +25,10 @@ Here are steps to test this on your own:
 - Install the latest `lxdk-*.msi`.
     - Install both Core and Developer components.
     - This will install and start `lxldr.sys`. It will also copy the `lxtstdrv.sys` files, but will not register them as a driver.
+- *OPTIONAL:* Verify that the `lxldr.sys` driver is running.
+    ```
+    sc query lxldr
+    ```
 - Use the command line to register `lxtstdrv.sys`:
     - Change to the LxDK bin directory:
         ```
@@ -37,18 +43,22 @@ Here are steps to test this on your own:
         ```
         lxreg.bat -u lxtstdrv
         ```
+- Enable kernel `DbgPrint` via the registry.
+    ```
+    Windows Registry Editor Version 5.00
+
+    [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Debug Print Filter]
+    "DEFAULT"=dword:0000000f
+    ```
 - Install [DebugView from Sysinternals](https://docs.microsoft.com/en-us/sysinternals/downloads/debugview).
 - Start DebugView as Administrator.
     - From the menu select Capture > Capture Kernel to view debug output.
-    - NOTE: You may also need to enable `DbgPrint` in the registry.
-        ```
-        Windows Registry Editor Version 5.00
-
-        [HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Debug Print Filter]
-        "DEFAULT"=dword:0000000f
-        ```
 - Make sure that WSL1 is not currently running and start a new `bash.exe` WSL1 session.
-- You should immediately see in DebugView a log from `lxtstdrv.sys`. The function `CreateInitialNamespace` is only called when a new WSL1 session is started.
+- *OPTIONAL:* Verify that the `lxtstdrv.sys` driver is now running as well.
+    ```
+    sc query lxtstdrv
+    ```
+- You should immediately see in DebugView a log from `lxtstdrv.sys`. If you do not it means that either there was a WSL1 session already running when the LxDK was installed or that you have not enabled `DbgPrint` in the registry.
     ```
     CreateInitialNamespace(Instance=XXXXXXXXXXXXXXXX) = 0
     ```
@@ -62,6 +72,10 @@ Here are steps to test this on your own:
     $ echo hello > lxtst
     $ cat lxtst
     ```
+
+**NOTES:**
+- The `lxldr.sys` driver currently only loads drivers such as `lxtstdrv.sys` when a new WSL1 session is created (see `CreateInitialNamespace`). If there is already a WSL1 session it fails to load any drivers. To solve this problem simply reboot Win10. The `lxldr.sys` driver is registered as a `SERVICE_SYSTEM_START` driver, so it loads early during boot (before any WSL1 sessions) and this problem will not happen again after the first reboot.
+- In the future this problem may be worked around by either improving the `lxldr.sys` driver or by simply having the installer demand a reboot after installation.
 
 ## History
 
