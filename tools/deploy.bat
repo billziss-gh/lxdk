@@ -1,18 +1,36 @@
 @echo off
 
 setlocal
+setlocal EnableDelayedExpansion
 
-set CONFIG=Debug
-set TARGET_MACHINE=WIN10DBG
-if not X%1==X set TARGET_MACHINE=%1
-set TARGET_ACCOUNT=\Users\%USERNAME%\Downloads\lxdk\
-set TARGET=\\%TARGET_MACHINE%%TARGET_ACCOUNT%
+set Config=Debug
+set Suffix=x64
+set Deploy=C:\Deploy\lxdk
+set Target=Win10DBG
+set Chkpnt=wsl1
+if not X%1==X set Target=%1
+if not X%2==X set Chkpnt=%2
 
-cd %~dp0..
-mkdir %TARGET% 2>nul
-for %%f in (lxldr.sys lxtstdrv.sys) do (
-	copy build\VStudio\build\%CONFIG%\%%f %TARGET% >nul
+(
+    echo sc create lxldr type=kernel binPath=%%~dp0lxldr.sys
+    echo sc create lxtstdrv type=kernel binPath=%%~dp0lxtstdrv.sys
+    echo reg add HKLM\Software\LxDK\Services\lxtstdrv /f
+) > %~dp0..\build\VStudio\build\%Config%\deploy-setup.bat
+
+set Files=
+for %%f in (
+    %~dp0..\build\VStudio\build\%Config%\
+        lxldr.sys
+        lxtstdrv.sys
+        deploy-setup.bat
+    ) do (
+    set File=%%~f
+    if [!File:~-1!] == [\] (
+        set Dir=!File!
+    ) else (
+        if not [!Files!] == [] set Files=!Files!,
+        set Files=!Files!'!Dir!!File!'
+    )
 )
-echo sc create lxldr type=kernel binPath=%%~dp0lxldr.sys         >%TARGET%kminst.bat
-echo sc create lxtstdrv type=kernel binPath=%%~dp0lxtstdrv.sys  >>%TARGET%kminst.bat
-echo reg add HKLM\Software\LxDK\Services\lxtstdrv /f            >>%TARGET%kminst.bat
+
+powershell -NoProfile -ExecutionPolicy Bypass -Command "& '%~dp0deploy.ps1' -Name '%Target%' -CheckpointName '%Chkpnt%' -Files !Files! -Destination '%Deploy%'"
