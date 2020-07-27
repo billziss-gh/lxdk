@@ -10,9 +10,7 @@ The LxDK consists of the following:
 
 The LxDK is distributed as a Windows MSI that includes signed drivers.
 
-**NOTES:**
-- This release should be considered of **ALPHA** quality and you should therefore try it in a VM.
-- This release has been tested on Windows 1809 (10.0.17763.379) and Windows 1909 (10.0.18363.418). It will likely not work with versions earlier than 1809, but it should work with in-between and later versions. Please report your findings via the GitHub Issues list.
+**NOTE:** This release has been tested on Windows 1809 (10.0.17763.379) and Windows 1909 (10.0.18363.418). It will likely not work with versions earlier than 1809, but it should work with in-between and later versions. Please report your findings via the GitHub Issues list.
 
 ## Documentation
 
