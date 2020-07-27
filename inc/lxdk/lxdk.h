@@ -284,6 +284,10 @@ LXDK_IMPORT(PLX_INODE, VfsInodeAllocate,
 LXDK_IMPORT(PLX_FILE, VfsFileAllocate,
     SIZE_T Size,
     PLX_FILE_CALLBACKS Callbacks)
+LXDK_IMPORT(NTSTATUS, LxpThreadWait,
+    PVOID Object,
+    PLARGE_INTEGER Timeout,
+    BOOLEAN CheckThreadFirst);
 LXDK_IMPORT(INT, LxpUtilTranslateStatus,
     NTSTATUS Status)
 

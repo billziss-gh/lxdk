@@ -12,7 +12,11 @@ set outfile=%outfile:/=\%
 set workdir=!infile!.work
 set workbase=!workdir!\%~n1
 
-call "%VS140COMNTOOLS%\..\..\VC\vcvarsall.bat" x64
+set vswhere="%ProgramFiles(x86)%\Microsoft Visual Studio\Installer\vswhere.exe"
+for /f "usebackq tokens=*" %%i in (`%vswhere% -find VC\**\vcvarsall.bat`) do (
+    call "%%i" x64
+)
+
 set INCLUDE=%~dp0..\inc;!WindowsSdkDir!Include\!WindowsSDKVersion!km\crt;!WindowsSdkDir!Include\!WindowsSDKVersion!km;!WindowsSdkDir!Include\!WindowsSDKVersion!km\shared;!INCLUDE!
 
 if exist !workdir! rmdir /s/q !workdir!
