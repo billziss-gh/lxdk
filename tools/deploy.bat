@@ -15,6 +15,7 @@ if not X%2==X set Chkpnt=%2
     echo sc create lxldr type=kernel binPath=%%~dp0lxldr.sys
     echo sc create lxtstdrv type=kernel binPath=%%~dp0lxtstdrv.sys
     echo reg add HKLM\Software\LxDK\Services\lxtstdrv /f
+    echo sc start lxldr
 ) > %~dp0..\build\VStudio\build\%Config%\deploy-setup.bat
 
 set Files=

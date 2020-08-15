@@ -73,10 +73,8 @@ NTSTATUS NTAPI LxldrRegisterService(
     }
 }
 
-static NTSTATUS LoadService(
-    HANDLE Root,
-    PUNICODE_STRING Name,
-    PVOID Context)
+static NTSTATUS LoadDriver(
+    PUNICODE_STRING Name)
 {
     WCHAR PathBuf[64 + 256];
     UNICODE_STRING Path;
@@ -88,17 +86,65 @@ static NTSTATUS LoadService(
     Status = NT_SUCCESS(Status) ? RtlAppendUnicodeStringToString(&Path, Name) : Status;
     if (!NT_SUCCESS(Status))
     {
-        LOG(": \"%wZ\": error: name too long", Name);
-
         Status = STATUS_INVALID_PARAMETER;
         goto exit;
     }
 
     Status = ZwLoadDriver(&Path);
     if (!NT_SUCCESS(Status) && STATUS_IMAGE_ALREADY_LOADED != Status)
-    {
-        LOG(": \"%wZ\": error: ZwLoadDriver = %lx", Name, Status);
+        goto exit;
 
+    Status = STATUS_SUCCESS;
+
+exit:
+    return Status;
+}
+
+static NTSTATUS LoadService(
+    HANDLE Root,
+    PUNICODE_STRING Name,
+    PVOID Context)
+{
+    UNICODE_STRING RegistryValueName;
+    union
+    {
+        KEY_VALUE_PARTIAL_INFORMATION V;
+        UINT8 B[FIELD_OFFSET(KEY_VALUE_PARTIAL_INFORMATION, Data) + 256];
+    } RegistryValue;
+    ULONG RegistryValueLength;
+    UNICODE_STRING DependName;
+    NTSTATUS Status;
+
+    RtlInitUnicodeString(&RegistryValueName, L"Depends");
+    RegistryValueLength = sizeof RegistryValue - 2 * sizeof(WCHAR);
+        /* leave space for MULTI_SZ term-0's that will be added below (see RtlZeroMemory) */
+    Status = RegistryGetValue(Root, Name, &RegistryValueName, &RegistryValue.V, &RegistryValueLength);
+    if (NT_SUCCESS(Status))
+    {
+        if (REG_SZ == RegistryValue.V.Type || REG_MULTI_SZ == RegistryValue.V.Type)
+        {
+            ASSERT(sizeof RegistryValue > RegistryValueLength);
+            RtlZeroMemory(RegistryValue.B + RegistryValueLength,
+                sizeof RegistryValue - RegistryValueLength);
+                /* ensure that MULTI_SZ term-0's always exist */
+            for (PWSTR P = (PWSTR)RegistryValue.V.Data; L'\0' != *P; P += wcslen(P) + 1)
+            {
+                RtlInitUnicodeString(&DependName, P);
+                Status = LoadDriver(&DependName);
+                if (!NT_SUCCESS(Status))
+                {
+                    LOG(": \"%wZ\": while loading dependency \"%wZ\": error = %lx",
+                        Name, DependName, Status);
+                    goto exit;
+                }
+            }
+        }
+    }
+
+    Status = LoadDriver(Name);
+    if (!NT_SUCCESS(Status))
+    {
+        LOG(": \"%wZ\": while loading: error = %lx", Name, Status);
         goto exit;
     }
 
@@ -148,7 +194,7 @@ NTSTATUS DriverEntry(
     PDRIVER_OBJECT DriverObject,
     PUNICODE_STRING RegistryPath)
 {
-#if 0
+#if DBG
     if (!KD_DEBUGGER_NOT_PRESENT)
         DbgBreakPoint();
 #endif

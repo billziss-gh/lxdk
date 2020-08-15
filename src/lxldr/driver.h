@@ -17,11 +17,19 @@
 
 #pragma warning(disable:4100)           /* unreferenced formal parameter */
 
-#define LOG(Format, ...)                DbgPrint("%s" Format "\n", __FUNCTION__, __VA_ARGS__)
+#define DRIVER_NAME                     "LXLDR"
+
+#define LOG(Format, ...)                DbgPrint(DRIVER_NAME ": %s" Format "\n", __FUNCTION__, __VA_ARGS__)
 
 #define LXDK_REGPATH                    "\\Registry\\Machine\\Software\\LxDK"
 #define LXDK_REGPATH_SERVICES           LXDK_REGPATH "\\Services"
 
+NTSTATUS RegistryGetValue(
+    HANDLE Root,
+    PUNICODE_STRING Path,
+    PUNICODE_STRING ValueName,
+    PKEY_VALUE_PARTIAL_INFORMATION ValueInformation,
+    PULONG PValueInformationLength);
 NTSTATUS RegistryEnumerateKeys(
     HANDLE Root,
     PUNICODE_STRING Path,

@@ -13,6 +13,39 @@
 
 #include <lxldr/driver.h>
 
+NTSTATUS RegistryGetValue(
+    HANDLE Root,
+    PUNICODE_STRING Path,
+    PUNICODE_STRING ValueName,
+    PKEY_VALUE_PARTIAL_INFORMATION ValueInformation,
+    PULONG PValueInformationLength)
+{
+    OBJECT_ATTRIBUTES ObjectAttributes;
+    HANDLE Handle = 0;
+    NTSTATUS Status;
+
+    InitializeObjectAttributes(&ObjectAttributes,
+        Path, OBJ_CASE_INSENSITIVE | OBJ_KERNEL_HANDLE, Root, 0);
+
+    Status = ZwOpenKey(&Handle, KEY_QUERY_VALUE, &ObjectAttributes);
+    if (!NT_SUCCESS(Status))
+        goto exit;
+
+    Status = ZwQueryValueKey(Handle, ValueName,
+        KeyValuePartialInformation, ValueInformation,
+        *PValueInformationLength, PValueInformationLength);
+    if (!NT_SUCCESS(Status))
+        goto exit;
+
+    Status = STATUS_SUCCESS;
+
+exit:
+    if (0 != Handle)
+        ZwClose(Handle);
+
+    return Status;
+}
+
 NTSTATUS RegistryEnumerateKeys(
     HANDLE Root,
     PUNICODE_STRING Path,
